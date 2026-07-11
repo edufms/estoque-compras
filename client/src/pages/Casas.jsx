@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../auth.jsx";
+import ConfirmModal from "../ConfirmModal.jsx";
 
 export default function Casas() {
   const { usuario, casas, casaAtual, criarCasa, entrarCasa, trocarCasa, sairCasa, regenerarCodigo, removerMembro, excluirCasa } = useAuth();
@@ -9,6 +10,7 @@ export default function Casas() {
   const [erro, setErro] = useState("");
   const [copiado, setCopiado] = useState(false);
   const [codigoAtual, setCodigoAtual] = useState("");
+  const [modal, setModal] = useState(null);
 
   useEffect(() => {
     if (casaAtual) setCodigoAtual(casaAtual.codigo);
@@ -49,30 +51,37 @@ export default function Casas() {
   }
 
   async function handleRemoverMembro(userId) {
-    if (!confirm("Remover este membro?")) return;
-    try {
-      setErro("");
-      await removerMembro(casaAtual.id, userId);
-    } catch (err) {
-      setErro(err.message);
-    }
+    setModal({
+      tipo: "remover",
+      userId,
+      titulo: "Remover membro",
+      mensagem: "Tem certeza que deseja remover este membro?",
+    });
   }
 
   async function handleSair() {
-    if (!confirm("Sair desta casa?")) return;
-    try {
-      setErro("");
-      await sairCasa(casaAtual.id);
-    } catch (err) {
-      setErro(err.message);
-    }
+    setModal({
+      tipo: "sair",
+      titulo: "Sair desta casa",
+      mensagem: "Tem certeza que deseja sair desta casa?",
+    });
   }
 
   async function handleExcluir() {
-    if (!confirm("Excluir esta casa? Todos os dados serão perdidos.")) return;
+    setModal({
+      tipo: "excluir",
+      titulo: "Excluir casa",
+      mensagem: "Tem certeza? Todos os dados (produtos, listas, movimentos) serão perdidos permanentemente.",
+    });
+  }
+
+  async function confirmarModal() {
+    setErro("");
+    setModal(null);
     try {
-      setErro("");
-      await excluirCasa(casaAtual.id);
+      if (modal.tipo === "sair") await sairCasa(casaAtual.id);
+      else if (modal.tipo === "excluir") await excluirCasa(casaAtual.id);
+      else if (modal.tipo === "remover") await removerMembro(casaAtual.id, modal.userId);
     } catch (err) {
       setErro(err.message);
     }
@@ -225,6 +234,16 @@ export default function Casas() {
           </div>
         </form>
       )}
+
+      <ConfirmModal
+        aberto={!!modal}
+        titulo={modal?.titulo || ""}
+        mensagem={modal?.mensagem || ""}
+        btnConfirmar="Confirmar"
+        btnCancelar="Cancelar"
+        onConfirmar={confirmarModal}
+        onCancelar={() => setModal(null)}
+      />
     </div>
   );
 }
