@@ -39,7 +39,10 @@ export function ValidadesField({ value, onChange, quantidadeTotal = 0, label = "
   function update(i, campo, v) {
     if (campo === "quantidade") {
       const num = Number(v) || 0;
-      const outras = datas.reduce((s, d, idx) => (idx === i ? s : s + (Number(d.quantidade) || 0)), 0);
+      const outras = datas.reduce(
+        (s, d, idx) => (idx === i ? s : s + (Number(d.quantidade) || 0)),
+        0,
+      );
       const maxima = total - outras;
       const clamped = Math.max(0, Math.min(num, maxima));
       onChange(datas.map((d, idx) => (idx === i ? { ...d, quantidade: clamped } : d)));
@@ -59,7 +62,11 @@ export function ValidadesField({ value, onChange, quantidadeTotal = 0, label = "
         <div key={i} style={{ display: "flex", gap: 8, margin: "6px 0", alignItems: "flex-end" }}>
           <label style={{ flex: 1 }}>
             Data
-            <input type="date" value={d.data || ""} onChange={(e) => update(i, "data", e.target.value)} />
+            <input
+              type="date"
+              value={d.data || ""}
+              onChange={(e) => update(i, "data", e.target.value)}
+            />
           </label>
           <label style={{ width: 110 }}>
             Qtd.
@@ -71,7 +78,12 @@ export function ValidadesField({ value, onChange, quantidadeTotal = 0, label = "
               onChange={(e) => update(i, "quantidade", e.target.value)}
             />
           </label>
-          <button type="button" className="small danger" onClick={() => remover(i)} aria-label="Remover validade">
+          <button
+            type="button"
+            className="small danger"
+            onClick={() => remover(i)}
+            aria-label="Remover validade"
+          >
             ✕
           </button>
         </div>

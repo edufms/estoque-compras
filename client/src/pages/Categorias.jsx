@@ -1,8 +1,42 @@
 import { useEffect, useState } from "react";
-import { carregarCategorias, getCategorias, salvarCategoria, removerCategoria } from "../categorias.js";
+import {
+  carregarCategorias,
+  getCategorias,
+  salvarCategoria,
+  removerCategoria,
+} from "../categorias.js";
 import { api } from "../api.js";
 
-const SUGESTOES = ["📦", "🥖", "🥤", "🧴", "🧹", "🍎", "🥛", "🧊", "🪣", "🧷", "📝", "🔧", "🥩", "🧀", "🥚", "🍞", "🍝", "🧂", "☕", "🧃", "🧻", "💊", "🔋", "💡", "🧰", "🎒", "👕", "🧸"];
+const SUGESTOES = [
+  "📦",
+  "🥖",
+  "🥤",
+  "🧴",
+  "🧹",
+  "🍎",
+  "🥛",
+  "🧊",
+  "🪣",
+  "🧷",
+  "📝",
+  "🔧",
+  "🥩",
+  "🧀",
+  "🥚",
+  "🍞",
+  "🍝",
+  "🧂",
+  "☕",
+  "🧃",
+  "🧻",
+  "💊",
+  "🔋",
+  "💡",
+  "🧰",
+  "🎒",
+  "👕",
+  "🧸",
+];
 
 export default function Categorias() {
   const [registradas, setRegistradas] = useState([]);
@@ -26,7 +60,7 @@ export default function Categorias() {
       .listarProdutos()
       .then((ps) => {
         const nomes = [...new Set(ps.map((p) => p.categoria).filter(Boolean))].sort((a, b) =>
-          a.localeCompare(b)
+          a.localeCompare(b),
         );
         setUsadas(nomes);
       })
@@ -35,7 +69,7 @@ export default function Categorias() {
 
   const mapa = Object.fromEntries(registradas.map((c) => [c.nome, c]));
   const todas = [...new Set([...registradas.map((c) => c.nome), ...usadas])].sort((a, b) =>
-    a.localeCompare(b)
+    a.localeCompare(b),
   );
 
   async function submit(e) {
@@ -94,7 +128,9 @@ export default function Categorias() {
             </datalist>
           </label>
           <div style={{ marginTop: 12 }}>
-            <span className="muted" style={{ display: "block", marginBottom: 6 }}>Ícone</span>
+            <span className="muted" style={{ display: "block", marginBottom: 6 }}>
+              Ícone
+            </span>
             <div className="icones">
               {SUGESTOES.map((s) => (
                 <button
@@ -133,7 +169,9 @@ export default function Categorias() {
                     <span className="cat-icone">{reg ? reg.icone : "⬜"}</span> {c}
                   </span>
                   {reg ? (
-                    <button className="small danger" onClick={() => remover(c)}>Excluir</button>
+                    <button className="small danger" onClick={() => remover(c)}>
+                      Excluir
+                    </button>
                   ) : (
                     <button className="small ghost" onClick={() => preparar(c, "📦")}>
                       Definir ícone

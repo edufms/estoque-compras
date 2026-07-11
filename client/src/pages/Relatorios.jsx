@@ -78,11 +78,7 @@ export default function Relatorios() {
         <h1>Relatórios</h1>
         <div className="btn-row" style={{ margin: 0, flexWrap: "wrap" }}>
           {tabs.map((t) => (
-            <button
-              key={t.id}
-              className={aba === t.id ? "" : "ghost"}
-              onClick={() => setAba(t.id)}
-            >
+            <button key={t.id} className={aba === t.id ? "" : "ghost"} onClick={() => setAba(t.id)}>
               {t.label}
             </button>
           ))}
@@ -104,7 +100,9 @@ export default function Relatorios() {
           <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
             <option value="">Todas</option>
             {categorias.map((c) => (
-              <option key={c} value={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
           </select>
         </label>
@@ -117,16 +115,28 @@ export default function Relatorios() {
             <option value="50">50</option>
           </select>
         </label>
-        <button className="ghost" onClick={async () => {
-          try {
-            const res = await fetch("/api/relatorios/exportar", { headers: { Authorization: `Bearer ${getToken()}` } });
-            if (!res.ok) throw new Error("Erro ao exportar");
-            const blob = await res.blob();
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement("a"); a.href = url; a.download = "produtos.csv"; a.click();
-            URL.revokeObjectURL(url);
-          } catch (e) { alert(e.message); }
-        }}>Exportar CSV</button>
+        <button
+          className="ghost"
+          onClick={async () => {
+            try {
+              const res = await fetch("/api/relatorios/exportar", {
+                headers: { Authorization: `Bearer ${getToken()}` },
+              });
+              if (!res.ok) throw new Error("Erro ao exportar");
+              const blob = await res.blob();
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = "produtos.csv";
+              a.click();
+              URL.revokeObjectURL(url);
+            } catch (e) {
+              alert(e.message);
+            }
+          }}
+        >
+          Exportar CSV
+        </button>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
@@ -157,11 +167,7 @@ export default function Relatorios() {
               <div className="muted" style={{ marginBottom: 6 }}>
                 {data.abaixoDoMinimo} de {data.quantidadeProdutos} tipos abaixo do mínimo
               </div>
-              <Barra
-                valor={data.abaixoDoMinimo}
-                maximo={data.quantidadeProdutos}
-                cor="warn"
-              />
+              <Barra valor={data.abaixoDoMinimo} maximo={data.quantidadeProdutos} cor="warn" />
             </div>
           )}
         </div>

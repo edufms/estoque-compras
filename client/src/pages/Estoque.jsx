@@ -28,19 +28,30 @@ function Lancar({ produto, tipo, onClose, onSalvar }) {
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>{tipo === "entrada" ? "Entrada de estoque" : "Saída de estoque"}</h2>
-        <p className="muted">{produto.nome} — atual: {produto.quantidade}</p>
+        <p className="muted">
+          {produto.nome} — atual: {produto.quantidade}
+        </p>
         {erro && <p className="erro">{erro}</p>}
         <form onSubmit={submit}>
           <label>
             Quantidade
-            <input type="number" min="0" step="0.001" value={quantidade} onChange={(e) => setQuantidade(e.target.value)} required />
+            <input
+              type="number"
+              min="0"
+              step="0.001"
+              value={quantidade}
+              onChange={(e) => setQuantidade(e.target.value)}
+              required
+            />
           </label>
           <label>
             Observação
             <input value={observacao} onChange={(e) => setObservacao(e.target.value)} />
           </label>
           <div className="modal-actions">
-            <button type="button" className="ghost" onClick={onClose}>Cancelar</button>
+            <button type="button" className="ghost" onClick={onClose}>
+              Cancelar
+            </button>
             <button type="submit" disabled={loading}>
               {loading ? "Salvando…" : "Confirmar"}
             </button>
@@ -129,12 +140,19 @@ export default function Estoque() {
           <button className={aba === "produtos" ? "" : "ghost"} onClick={() => setAba("produtos")}>
             Produtos
           </button>
-          <button className={aba === "historico" ? "" : "ghost"} onClick={() => setAba("historico")}>
+          <button
+            className={aba === "historico" ? "" : "ghost"}
+            onClick={() => setAba("historico")}
+          >
             Histórico
           </button>
         </div>
-        <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
-        <button className="ghost" onClick={exportarEstoque}>Exportar CSV</button>
+        <button className="ghost" onClick={() => setImportando(true)}>
+          Importar CSV
+        </button>
+        <button className="ghost" onClick={exportarEstoque}>
+          Exportar CSV
+        </button>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
@@ -172,9 +190,16 @@ export default function Estoque() {
                   </td>
                   <td data-label="Ações">
                     <div className="td-actions">
-                        <button className="small" onClick={() => setLancar({ produto: p, tipo: "entrada" })}>Entrada</button>
-                        <button className="small ghost" onClick={() => setConsumirLote(p)}>Consumo</button>
-                      </div>
+                      <button
+                        className="small"
+                        onClick={() => setLancar({ produto: p, tipo: "entrada" })}
+                      >
+                        Entrada
+                      </button>
+                      <button className="small ghost" onClick={() => setConsumirLote(p)}>
+                        Consumo
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}

@@ -44,11 +44,7 @@ export default function Login() {
           {modo === "cadastro" && (
             <label>
               Nome
-              <input
-                value={form.nome}
-                onChange={(e) => update("nome", e.target.value)}
-                required
-              />
+              <input value={form.nome} onChange={(e) => update("nome", e.target.value)} required />
             </label>
           )}
           <label>

@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const { Product, Movement, User } = require("../models");
-const { mesclarValidades, subtrairValidades } = require("../utils/validades");
+const { mesclarValidades } = require("../utils/validades");
 const { likeOp } = require("../utils/dialect");
 
 async function entrada(req, res) {
@@ -47,7 +47,9 @@ async function saida(req, res) {
     const lote = produto.validades.find((v) => v.data === validadeData);
     if (lote) {
       if (lote.quantidade < qtd) {
-        return res.status(400).json({ erro: `Lote ${validadeData} tem apenas ${lote.quantidade} unidade(s)` });
+        return res
+          .status(400)
+          .json({ erro: `Lote ${validadeData} tem apenas ${lote.quantidade} unidade(s)` });
       }
       lote.quantidade -= qtd;
       if (lote.quantidade <= 0) {
@@ -158,9 +160,10 @@ async function exportar(req, res) {
     const preco = (Number(p.preco) || 0).toFixed(2);
     const nome = `"${(p.nome || "").replace(/"/g, '""')}"`;
     const categoria = `"${(p.categoria || "").replace(/"/g, '""')}"`;
-    const validade = Array.isArray(p.validades) && p.validades.length
-      ? `"${p.validades.map((v) => `${v.data}:${v.quantidade}`).join(";")}"`
-      : "";
+    const validade =
+      Array.isArray(p.validades) && p.validades.length
+        ? `"${p.validades.map((v) => `${v.data}:${v.quantidade}`).join(";")}"`
+        : "";
     linhas.push(`${nome},${categoria},${preco},${p.quantidade},${p.estoqueMinimo},${validade}`);
   }
 

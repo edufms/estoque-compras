@@ -24,9 +24,20 @@ async function criarAutomatica(req, res) {
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
   const produtosMap = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
-  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
+  lista.itens = lista.itens.map((item) => ({
+    ...item,
+    produto: produtosMap[item.produto] || item.produto,
+  }));
   return res.status(201).json(lista);
 }
 
@@ -81,9 +92,20 @@ async function criarManual(req, res) {
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
   const produtosMap = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
-  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
+  lista.itens = lista.itens.map((item) => ({
+    ...item,
+    produto: produtosMap[item.produto] || item.produto,
+  }));
   return res.status(201).json(lista);
 }
 
@@ -97,14 +119,30 @@ async function listar(req, res) {
   if (offset) options.offset = Number(offset);
   const listas = await ShoppingList.findAll(options);
 
-  const produtoIds = [...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean)))];
+  const produtoIds = [
+    ...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean))),
+  ];
   const produtos = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria", "preco"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
 
   const userIds = [...new Set(listas.map((l) => l.criadoPor).filter(Boolean))];
   const usuarios = userIds.length
-    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce((acc, u) => { acc[u.id] = u; return acc; }, {})
+    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce(
+        (acc, u) => {
+          acc[u.id] = u;
+          return acc;
+        },
+        {},
+      )
     : {};
 
   for (const lista of listas) {
@@ -127,7 +165,15 @@ async function obter(req, res) {
   if (Array.isArray(lista.itens)) {
     const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
     const produtos = produtoIds.length
-      ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+      ? (
+          await Product.findAll({
+            where: { id: produtoIds },
+            attributes: ["id", "nome", "categoria", "preco"],
+          })
+        ).reduce((acc, p) => {
+          acc[p.id] = p;
+          return acc;
+        }, {})
       : {};
     lista.itens = lista.itens.map((item) => ({
       ...item,
@@ -184,9 +230,18 @@ async function finalizar(req, res) {
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
   const produtosMap = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome"] })).reduce(
+        (acc, p) => {
+          acc[p.id] = p;
+          return acc;
+        },
+        {},
+      )
     : {};
-  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
+  lista.itens = lista.itens.map((item) => ({
+    ...item,
+    produto: produtosMap[item.produto] || item.produto,
+  }));
   return res.json(lista);
 }
 
@@ -218,9 +273,20 @@ async function reabrir(req, res) {
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
   const produtosMap = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria", "preco"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
-  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
+  lista.itens = lista.itens.map((item) => ({
+    ...item,
+    produto: produtosMap[item.produto] || item.produto,
+  }));
   return res.json(lista);
 }
 
@@ -263,9 +329,20 @@ async function atualizar(req, res) {
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
   const produtosMap = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria", "preco"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
-  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
+  lista.itens = lista.itens.map((item) => ({
+    ...item,
+    produto: produtosMap[item.produto] || item.produto,
+  }));
   return res.json(lista);
 }
 

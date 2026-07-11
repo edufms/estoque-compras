@@ -5,8 +5,12 @@ export function ConfirmModal({ titulo, mensagem, onConfirm, onCancel }) {
         <h2>{titulo}</h2>
         <p style={{ whiteSpace: "pre-wrap" }}>{mensagem}</p>
         <div className="modal-actions">
-          <button type="button" className="ghost" onClick={onCancel}>Cancelar</button>
-          <button type="button" className="danger" onClick={onConfirm}>Confirmar</button>
+          <button type="button" className="ghost" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button type="button" className="danger" onClick={onConfirm}>
+            Confirmar
+          </button>
         </div>
       </div>
     </div>

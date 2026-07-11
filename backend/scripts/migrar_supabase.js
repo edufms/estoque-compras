@@ -1,7 +1,8 @@
 const { Sequelize } = require("sequelize");
 const path = require("path");
 
-const SUPABASE_URL = "postgresql://postgres:Estoque%40123@db.vubcpoqirewqkvnqcxpx.supabase.co:5432/postgres";
+const SUPABASE_URL =
+  "postgresql://postgres:Estoque%40123@db.vubcpoqirewqkvnqcxpx.supabase.co:5432/postgres";
 
 async function run() {
   // 1. Connect to local DB and export data
@@ -161,7 +162,8 @@ async function run() {
     // Actually need to check names:
     // User -> Users, Product -> Products, Category -> Categories
     // ShoppingList -> ShoppingLists, Movement -> Movements
-    const finalTable = name === "Movement" ? "Movements" : name === "ShoppingList" ? "ShoppingLists" : name + "s";
+    const finalTable =
+      name === "Movement" ? "Movements" : name === "ShoppingList" ? "ShoppingLists" : name + "s";
 
     const columns = Object.keys(rows[0]);
     const placeholders = columns.map((_, i) => `$${i + 1}`).join(", ");
@@ -177,7 +179,7 @@ async function run() {
       // Reset sequence for id
       await supabaseSeq.query(
         `INSERT INTO "${finalTable}" (${cols}) VALUES (${placeholders}) ON CONFLICT (id) DO NOTHING`,
-        { bind: values }
+        { bind: values },
       );
     }
 

@@ -17,7 +17,8 @@ Compact guidance for working in this repo. Commands are verified against `estoqu
 ## Tests
 - `npm test` (run from `estoque-compras/backend`) runs Jest (`--runInBand --detectOpenHandles`). `jest.config.js` matches `tests/**/*.test.js` (e.g. `tests/app.test.js`).
 - Tests use SQLite via Sequelize (`tests/setup.js` syncs the database and clears collections between tests). **No external database setup needed to test.**
-- There is **no lint or typecheck** configured (no ESLint/TS). Don't look for or invent those steps.
+- There is **no typecheck** configured (no TypeScript).
+- **Lint** (`npm run lint`) and **format** (`npm run format` / `npm run format:check`) are available in both `backend/` and `client/`. Configs: `.eslintrc.json` + `.prettierrc` (root) + `.eslintignore` / `.prettierignore` per project.
 
 ## MongoDB / data persistence
 - This environment has no standalone MongoDB. Dev runs use an **in-memory** SQLite (if `DATABASE_URL` is not postgres) or a PostgreSQL database.

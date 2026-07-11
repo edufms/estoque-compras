@@ -2,8 +2,12 @@ import { useState } from "react";
 import { ListaValidades } from "./ValidadesField.jsx";
 
 export function ConsumirLoteModal({ produto, onClose, onConfirm }) {
-  const lotes = Array.isArray(produto.validades) ? produto.validades.filter((v) => v.quantidade > 0) : [];
-  const loteInicial = lotes.length ? lotes.sort((a, b) => a.data.localeCompare(b.data))[0].data : "";
+  const lotes = Array.isArray(produto.validades)
+    ? produto.validades.filter((v) => v.quantidade > 0)
+    : [];
+  const loteInicial = lotes.length
+    ? lotes.sort((a, b) => a.data.localeCompare(b.data))[0].data
+    : "";
   const [quantidade, setQuantidade] = useState(1);
   const [validadeData, setValidadeData] = useState(loteInicial);
   const [erro, setErro] = useState("");
@@ -14,10 +18,12 @@ export function ConsumirLoteModal({ produto, onClose, onConfirm }) {
     setErro("");
     const qtd = Number(quantidade);
     if (!qtd || qtd <= 0) return setErro("Informe a quantidade");
-    if (qtd > produto.quantidade) return setErro(`Estoque insuficiente (máx: ${produto.quantidade})`);
+    if (qtd > produto.quantidade)
+      return setErro(`Estoque insuficiente (máx: ${produto.quantidade})`);
     if (validadeData) {
       const lote = lotes.find((v) => v.data === validadeData);
-      if (lote && qtd > lote.quantidade) return setErro(`Lote tem apenas ${lote.quantidade} unidade(s)`);
+      if (lote && qtd > lote.quantidade)
+        return setErro(`Lote tem apenas ${lote.quantidade} unidade(s)`);
     }
     setLoading(true);
     try {
@@ -40,7 +46,9 @@ export function ConsumirLoteModal({ produto, onClose, onConfirm }) {
         <p className="muted">Estoque atual: {produto.quantidade}</p>
         {lotes.length > 0 && (
           <div style={{ marginBottom: 12 }}>
-            <p className="muted small" style={{ marginBottom: 4 }}>Lotes:</p>
+            <p className="muted small" style={{ marginBottom: 4 }}>
+              Lotes:
+            </p>
             <ListaValidades validades={produto.validades} max={99} />
           </div>
         )}
@@ -59,7 +67,12 @@ export function ConsumirLoteModal({ produto, onClose, onConfirm }) {
                 required
                 style={{ flex: 1 }}
               />
-              <button type="button" className="small ghost" onClick={consumirTudo} style={{ whiteSpace: "nowrap" }}>
+              <button
+                type="button"
+                className="small ghost"
+                onClick={consumirTudo}
+                style={{ whiteSpace: "nowrap" }}
+              >
                 Tudo
               </button>
             </div>
@@ -68,16 +81,20 @@ export function ConsumirLoteModal({ produto, onClose, onConfirm }) {
             <label>
               Lote
               <select value={validadeData} onChange={(e) => setValidadeData(e.target.value)}>
-                {[...lotes].sort((a, b) => a.data.localeCompare(b.data)).map((v) => (
-                  <option key={v.data} value={v.data}>
-                    {v.data} — {v.quantidade} unidade(s)
-                  </option>
-                ))}
+                {[...lotes]
+                  .sort((a, b) => a.data.localeCompare(b.data))
+                  .map((v) => (
+                    <option key={v.data} value={v.data}>
+                      {v.data} — {v.quantidade} unidade(s)
+                    </option>
+                  ))}
               </select>
             </label>
           )}
           <div className="modal-actions">
-            <button type="button" className="ghost" onClick={onClose}>Cancelar</button>
+            <button type="button" className="ghost" onClick={onClose}>
+              Cancelar
+            </button>
             <button type="submit" disabled={loading}>
               {loading ? "Consumindo…" : "Consumir"}
             </button>

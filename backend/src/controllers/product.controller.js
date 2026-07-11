@@ -97,7 +97,10 @@ async function importar(req, res) {
     const g = agrupados[nome];
     g.quantidade += Number(linha.quantidade) || 0;
     if (linha.validade) {
-      g.validades.push({ data: String(linha.validade).trim(), quantidade: Number(linha.quantidade) || 0 });
+      g.validades.push({
+        data: String(linha.validade).trim(),
+        quantidade: Number(linha.quantidade) || 0,
+      });
     }
     if (Array.isArray(linha.validades)) {
       for (const v of linha.validades) {

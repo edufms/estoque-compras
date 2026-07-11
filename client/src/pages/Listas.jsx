@@ -42,7 +42,9 @@ function ModalManual({ produtos, onClose, onSalvar }) {
       for (const it of listaItens) {
         const soma = (it.validades || []).reduce((s, v) => s + (Number(v.quantidade) || 0), 0);
         if (soma > it.quantidade) {
-          throw new Error(`A soma das validades de "${it.nome}" não pode exceder a quantidade (${it.quantidade})`);
+          throw new Error(
+            `A soma das validades de "${it.nome}" não pode exceder a quantidade (${it.quantidade})`,
+          );
         }
       }
       await api.listaManual({ nome: nome || undefined, itens: listaItens });
@@ -66,31 +68,70 @@ function ModalManual({ produtos, onClose, onSalvar }) {
             <input value={nome} onChange={(e) => setNome(e.target.value)} />
           </label>
           {itens.map((it, i) => (
-            <div key={i} style={{ border: "1px solid var(--border)", borderRadius: 8, padding: 10, marginBottom: 8 }}>
+            <div
+              key={i}
+              style={{
+                border: "1px solid var(--border)",
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 8,
+              }}
+            >
               <label>
                 Produto
-                <CampoSugerido value={it.nome} opcoes={nomesProdutos} placeholder="Nome do produto" onChange={(v) => updateItem(i, "nome", v)} />
+                <CampoSugerido
+                  value={it.nome}
+                  opcoes={nomesProdutos}
+                  placeholder="Nome do produto"
+                  onChange={(v) => updateItem(i, "nome", v)}
+                />
               </label>
               <div style={{ display: "flex", gap: 8, marginTop: 8, alignItems: "flex-end" }}>
                 <label style={{ flex: 1 }}>
                   Categoria (se novo)
-                  <CampoSugerido value={it.categoria} opcoes={categorias} placeholder="Categoria" onChange={(v) => updateItem(i, "categoria", v)} />
+                  <CampoSugerido
+                    value={it.categoria}
+                    opcoes={categorias}
+                    placeholder="Categoria"
+                    onChange={(v) => updateItem(i, "categoria", v)}
+                  />
                 </label>
                 <label style={{ width: 90 }}>
                   Qtd.
-                  <input type="number" min="0" step="0.001" value={it.quantidade} onChange={(e) => updateItem(i, "quantidade", e.target.value)} />
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.001"
+                    value={it.quantidade}
+                    onChange={(e) => updateItem(i, "quantidade", e.target.value)}
+                  />
                 </label>
-                <button type="button" className="small danger" onClick={() => removeItem(i)} disabled={itens.length === 1}>
+                <button
+                  type="button"
+                  className="small danger"
+                  onClick={() => removeItem(i)}
+                  disabled={itens.length === 1}
+                >
                   ✕
                 </button>
               </div>
-              <ValidadesField value={it.validades} onChange={(v) => updateItem(i, "validades", v)} quantidadeTotal={Number(it.quantidade) || 0} />
+              <ValidadesField
+                value={it.validades}
+                onChange={(v) => updateItem(i, "validades", v)}
+                quantidadeTotal={Number(it.quantidade) || 0}
+              />
             </div>
           ))}
-          <button type="button" className="ghost" onClick={addItem}>Adicionar item</button>
+          <button type="button" className="ghost" onClick={addItem}>
+            Adicionar item
+          </button>
           <div className="modal-actions">
-            <button type="button" className="ghost" onClick={onClose}>Cancelar</button>
-            <button type="submit" disabled={loading}>{loading ? "Salvando…" : "Criar"}</button>
+            <button type="button" className="ghost" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Salvando…" : "Criar"}
+            </button>
           </div>
         </form>
       </div>
@@ -104,7 +145,7 @@ function ModalFinalizar({ lista, onClose, onConfirm }) {
 
   const total = lista.itens.reduce(
     (s, it) => s + (Number(it.precoUnitario) || 0) * (Number(it.quantidade) || 0),
-    0
+    0,
   );
 
   async function confirmar(e) {
@@ -125,8 +166,8 @@ function ModalFinalizar({ lista, onClose, onConfirm }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>Finalizar lista</h2>
         <p className="muted">
-          Ao finalizar, {lista.itens.length} item(ns) serão adicionados ao estoque.
-          O preço de cada produto será atualizado para o valor unitário informado na lista.
+          Ao finalizar, {lista.itens.length} item(ns) serão adicionados ao estoque. O preço de cada
+          produto será atualizado para o valor unitário informado na lista.
         </p>
         <div className="resumo-finalizar">
           <span className="muted">Valor total estimado da compra</span>
@@ -135,8 +176,12 @@ function ModalFinalizar({ lista, onClose, onConfirm }) {
         {erro && <p className="erro">{erro}</p>}
         <form onSubmit={confirmar}>
           <div className="modal-actions">
-            <button type="button" className="ghost" onClick={onClose}>Cancelar</button>
-            <button type="submit" disabled={loading}>{loading ? "Finalizando…" : "Finalizar"}</button>
+            <button type="button" className="ghost" onClick={onClose}>
+              Cancelar
+            </button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Finalizando…" : "Finalizar"}
+            </button>
           </div>
         </form>
       </div>
@@ -144,7 +189,17 @@ function ModalFinalizar({ lista, onClose, onConfirm }) {
   );
 }
 
-function ItemLinha({ item, editando, categorias, nomes, onToggle, onEditar, onSalvar, onCancelar, onRemover }) {
+function ItemLinha({
+  item,
+  editando,
+  categorias,
+  nomes,
+  onToggle,
+  onEditar,
+  onSalvar,
+  onCancelar,
+  onRemover,
+}) {
   const [form, setForm] = useState({
     nome: item.nome,
     categoria: item.categoria,
@@ -192,25 +247,58 @@ function ItemLinha({ item, editando, categorias, nomes, onToggle, onEditar, onSa
     <div className="list-item editando" onClick={(e) => e.stopPropagation()}>
       <label className="edit-campo grow">
         Produto
-        <CampoSugerido value={form.nome} opcoes={nomes} placeholder="Nome do produto" autoFocus onChange={(v) => upd("nome", v)} />
+        <CampoSugerido
+          value={form.nome}
+          opcoes={nomes}
+          placeholder="Nome do produto"
+          autoFocus
+          onChange={(v) => upd("nome", v)}
+        />
       </label>
       <label className="edit-campo grow">
         Categoria
-        <CampoSugerido value={form.categoria} opcoes={categorias} placeholder="Categoria" onChange={(v) => upd("categoria", v)} />
+        <CampoSugerido
+          value={form.categoria}
+          opcoes={categorias}
+          placeholder="Categoria"
+          onChange={(v) => upd("categoria", v)}
+        />
       </label>
       <label className="edit-campo qtd">
         Qtd.
-        <input type="number" min="0" step="0.001" value={form.quantidade} onChange={(e) => upd("quantidade", e.target.value)} />
+        <input
+          type="number"
+          min="0"
+          step="0.001"
+          value={form.quantidade}
+          onChange={(e) => upd("quantidade", e.target.value)}
+        />
       </label>
       <label className="edit-campo valor">
         Valor unit.
-        <input type="number" step="0.01" min="0" value={form.precoUnitario} onChange={(e) => upd("precoUnitario", e.target.value)} />
+        <input
+          type="number"
+          step="0.01"
+          min="0"
+          value={form.precoUnitario}
+          onChange={(e) => upd("precoUnitario", e.target.value)}
+        />
       </label>
-      <ValidadesField value={form.validades} onChange={(v) => upd("validades", v)} quantidadeTotal={Number(form.quantidade) || 0} />
+      <ValidadesField
+        value={form.validades}
+        onChange={(v) => upd("validades", v)}
+        quantidadeTotal={Number(form.quantidade) || 0}
+      />
       <div className="td-actions">
-        <button type="button" className="small" onClick={() => onSalvar(form)}>Salvar</button>
-        <button type="button" className="small ghost" onClick={onCancelar}>Cancelar</button>
-        <button type="button" className="small danger" onClick={onRemover}>✕</button>
+        <button type="button" className="small" onClick={() => onSalvar(form)}>
+          Salvar
+        </button>
+        <button type="button" className="small ghost" onClick={onCancelar}>
+          Cancelar
+        </button>
+        <button type="button" className="small danger" onClick={onRemover}>
+          ✕
+        </button>
       </div>
     </div>
   );
@@ -243,7 +331,13 @@ function CampoSugerido({ value, opcoes, onChange, placeholder, autoFocus }) {
       {aberto && foco && filtradas.length > 0 && (
         <ul className="sugestoes">
           {filtradas.map((o) => (
-            <li key={o} onMouseDown={() => { onChange(o); setAberto(false); }}>
+            <li
+              key={o}
+              onMouseDown={() => {
+                onChange(o);
+                setAberto(false);
+              }}
+            >
               {o}
             </li>
           ))}
@@ -286,7 +380,10 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
     return [...arr].sort((a, b) => Number(a.comprado) - Number(b.comprado));
   }
 
-  const totalLista = itens.reduce((s, it) => s + (Number(it.precoUnitario) || 0) * (Number(it.quantidade) || 0), 0);
+  const totalLista = itens.reduce(
+    (s, it) => s + (Number(it.precoUnitario) || 0) * (Number(it.quantidade) || 0),
+    0,
+  );
   const totalMarcado = itens
     .filter((it) => it.comprado)
     .reduce((s, it) => s + (Number(it.precoUnitario) || 0) * (Number(it.quantidade) || 0), 0);
@@ -295,21 +392,23 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
     setSalvando(true);
     setErro("");
     try {
-    const payload = novos
-      .filter((it) => it.nome && it.nome.trim())
-      .map((it) => ({
-        nome: it.nome.trim(),
-        categoria: it.categoria ? it.categoria.trim() : "",
-        quantidade: Number(it.quantidade) || 1,
-        comprado: !!it.comprado,
-        precoUnitario: Number(it.precoUnitario) || 0,
-        validades: (it.validades || []).filter(Boolean),
-      }));
+      const payload = novos
+        .filter((it) => it.nome && it.nome.trim())
+        .map((it) => ({
+          nome: it.nome.trim(),
+          categoria: it.categoria ? it.categoria.trim() : "",
+          quantidade: Number(it.quantidade) || 1,
+          comprado: !!it.comprado,
+          precoUnitario: Number(it.precoUnitario) || 0,
+          validades: (it.validades || []).filter(Boolean),
+        }));
       if (payload.length === 0) throw new Error("Adicione ao menos um item com nome");
       for (const it of payload) {
         const soma = (it.validades || []).reduce((s, v) => s + (Number(v.quantidade) || 0), 0);
         if (soma > it.quantidade) {
-          throw new Error(`A soma das validades de "${it.nome}" não pode exceder a quantidade (${it.quantidade})`);
+          throw new Error(
+            `A soma das validades de "${it.nome}" não pode exceder a quantidade (${it.quantidade})`,
+          );
         }
       }
       await api.atualizarLista(lista.id, { nome: nomeLista || undefined, itens: payload });
@@ -341,7 +440,9 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
   }
 
   async function toggle(item) {
-    const novos = ordenar(itens.map((it) => (it === item ? { ...it, comprado: !it.comprado } : it)));
+    const novos = ordenar(
+      itens.map((it) => (it === item ? { ...it, comprado: !it.comprado } : it)),
+    );
     setItens(novos);
     try {
       await persistir(novos, nome);
@@ -408,7 +509,9 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal" style={{ maxWidth: 600 }} onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" aria-label="Fechar" onClick={onClose}>×</button>
+        <button className="modal-close" aria-label="Fechar" onClick={onClose}>
+          ×
+        </button>
         {editandoNome ? (
           <input
             className="titulo-edicao"
@@ -424,7 +527,11 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
             }}
           />
         ) : (
-          <h2 className="titulo-editavel" title="Clique para editar" onClick={() => setEditandoNome(true)}>
+          <h2
+            className="titulo-editavel"
+            title="Clique para editar"
+            onClick={() => setEditandoNome(true)}
+          >
             {nome || "Sem nome"}
           </h2>
         )}
@@ -466,17 +573,32 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
           </button>
           <div className="td-actions">
             {lista.status === "pendente" && (
-              <button type="button" className="btn-sm" disabled={salvando} onClick={() => onFinalizar(lista)}>
+              <button
+                type="button"
+                className="btn-sm"
+                disabled={salvando}
+                onClick={() => onFinalizar(lista)}
+              >
                 Finalizar lista
               </button>
             )}
             {lista.status === "finalizada" && (
-              <button type="button" className="btn-sm" disabled={salvando} onClick={() => onReabrir(lista)}>
+              <button
+                type="button"
+                className="btn-sm"
+                disabled={salvando}
+                onClick={() => onReabrir(lista)}
+              >
                 Reabrir lista
               </button>
             )}
             {lista.status === "pendente" && (
-              <button type="button" className="ghost btn-sm" disabled={salvando} onClick={() => setImportando(true)}>
+              <button
+                type="button"
+                className="ghost btn-sm"
+                disabled={salvando}
+                onClick={() => setImportando(true)}
+              >
                 + Importar CSV
               </button>
             )}
@@ -579,7 +701,12 @@ export default function Listas() {
   }
 
   async function reabrir(id) {
-    if (!confirm("Reabrir esta lista para edição? O estoque adicionado pela finalização será estornado.")) return;
+    if (
+      !confirm(
+        "Reabrir esta lista para edição? O estoque adicionado pela finalização será estornado.",
+      )
+    )
+      return;
     try {
       const atualizada = await api.reabrirLista(id);
       setDetalhe(atualizada);
@@ -595,11 +722,15 @@ export default function Listas() {
         <h1>Listas de compras</h1>
         <div className="btn-row" style={{ margin: 0 }}>
           <button onClick={automatica}>Gerar automática</button>
-          <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
+          <button className="ghost" onClick={() => setImportando(true)}>
+            Importar CSV
+          </button>
         </div>
       </div>
 
-      <button className="fab" onClick={() => setModal(true)}>+</button>
+      <button className="fab" onClick={() => setModal(true)}>
+        +
+      </button>
 
       <div className="filters">
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -607,7 +738,9 @@ export default function Listas() {
           <option value="pendente">Pendentes</option>
           <option value="finalizada">Finalizadas</option>
         </select>
-        <button className="ghost" onClick={carregar}>Filtrar</button>
+        <button className="ghost" onClick={carregar}>
+          Filtrar
+        </button>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
@@ -638,15 +771,23 @@ export default function Listas() {
                 <td data-label="Criado por">{l.criadoPor?.nome || "—"}</td>
                 <td data-label="Ações">
                   <div className="td-actions">
-                    <button className="small ghost" onClick={() => abrir(l.id)}>Ver</button>
+                    <button className="small ghost" onClick={() => abrir(l.id)}>
+                      Ver
+                    </button>
                     {l.status === "pendente" && (
                       <>
-                        <button className="small" onClick={() => setFinalizando(l)}>Finalizar</button>
-                        <button className="small danger" onClick={() => remover(l.id)}>Excluir</button>
+                        <button className="small" onClick={() => setFinalizando(l)}>
+                          Finalizar
+                        </button>
+                        <button className="small danger" onClick={() => remover(l.id)}>
+                          Excluir
+                        </button>
                       </>
                     )}
                     {l.status === "finalizada" && (
-                      <button className="small" onClick={() => reabrir(l.id)}>Reabrir</button>
+                      <button className="small" onClick={() => reabrir(l.id)}>
+                        Reabrir
+                      </button>
                     )}
                   </div>
                 </td>

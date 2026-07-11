@@ -46,8 +46,10 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
 }
 
 export const api = {
-  login: (email, senha, lembrar = true) => request("/auth/login", { method: "POST", body: { email, senha, lembrar }, auth: false }),
-  cadastrar: (dados, lembrar = true) => request("/auth/cadastrar", { method: "POST", body: { ...dados, lembrar }, auth: false }),
+  login: (email, senha, lembrar = true) =>
+    request("/auth/login", { method: "POST", body: { email, senha, lembrar }, auth: false }),
+  cadastrar: (dados, lembrar = true) =>
+    request("/auth/cadastrar", { method: "POST", body: { ...dados, lembrar }, auth: false }),
   perfil: () => request("/auth/perfil"),
   atualizarPerfil: (dados) => request("/auth/perfil", { method: "PUT", body: dados }),
 

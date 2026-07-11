@@ -11,7 +11,13 @@ function Stat({ label, valor, to, cor }) {
       <div className="valor">{valor}</div>
     </div>
   );
-  return to ? <Link to={to} style={{ color: "inherit" }}>{conteudo}</Link> : conteudo;
+  return to ? (
+    <Link to={to} style={{ color: "inherit" }}>
+      {conteudo}
+    </Link>
+  ) : (
+    conteudo
+  );
 }
 
 export default function Home() {
@@ -73,8 +79,6 @@ export default function Home() {
         <span className="muted">Bem-vindo(a), {usuario?.nome}</span>
       </div>
 
-
-
       <div className="cards" style={{ marginBottom: 24 }}>
         <Stat label="Tipos de produtos" valor={valor.quantidadeProdutos} to="/produtos" />
         <Stat
@@ -83,18 +87,8 @@ export default function Home() {
           to="/relatorios"
           cor="var(--primary)"
         />
-        <Stat
-          label="Abaixo do mínimo"
-          valor={baixo.length}
-          to="/estoque"
-          cor="var(--warn)"
-        />
-        <Stat
-          label="Listas pendentes"
-          valor={pendentes.length}
-          to="/listas"
-          cor="var(--success)"
-        />
+        <Stat label="Abaixo do mínimo" valor={baixo.length} to="/estoque" cor="var(--warn)" />
+        <Stat label="Listas pendentes" valor={pendentes.length} to="/listas" cor="var(--success)" />
       </div>
 
       {cumprimento && (
@@ -103,18 +97,30 @@ export default function Home() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 20 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: 20,
+        }}
+      >
         <section>
           <div className="page-head" style={{ marginBottom: 10 }}>
             <h1 style={{ fontSize: 17 }}>Estoque baixo</h1>
-            <Link to="/estoque"><button className="ghost small">Todos</button></Link>
+            <Link to="/estoque">
+              <button className="ghost small">Todos</button>
+            </Link>
           </div>
           {baixo.length === 0 ? (
             <div className="empty">Nenhum produto abaixo do mínimo.</div>
           ) : (
             <table className="tabela-resumo">
               <thead>
-                <tr><th>Produto</th><th>Qtd.</th><th>Mín.</th></tr>
+                <tr>
+                  <th>Produto</th>
+                  <th>Qtd.</th>
+                  <th>Mín.</th>
+                </tr>
               </thead>
               <tbody>
                 {baixo.slice(0, 6).map((p) => (
@@ -132,14 +138,19 @@ export default function Home() {
         <section>
           <div className="page-head" style={{ marginBottom: 10 }}>
             <h1 style={{ fontSize: 17 }}>Listas pendentes</h1>
-            <Link to="/listas"><button className="ghost small">Todas</button></Link>
+            <Link to="/listas">
+              <button className="ghost small">Todas</button>
+            </Link>
           </div>
           {pendentes.length === 0 ? (
             <div className="empty">Nenhuma lista pendente.</div>
           ) : (
             <table className="tabela-resumo">
               <thead>
-                <tr><th>Lista</th><th>Itens</th></tr>
+                <tr>
+                  <th>Lista</th>
+                  <th>Itens</th>
+                </tr>
               </thead>
               <tbody>
                 {pendentes.slice(0, 6).map((l) => (
@@ -156,14 +167,20 @@ export default function Home() {
         <section>
           <div className="page-head" style={{ marginBottom: 10 }}>
             <h1 style={{ fontSize: 17 }}>Últimos movimentos</h1>
-            <Link to="/estoque"><button className="ghost small">Histórico</button></Link>
+            <Link to="/estoque">
+              <button className="ghost small">Histórico</button>
+            </Link>
           </div>
           {!mov || mov.length === 0 ? (
             <div className="empty">Nenhum movimento.</div>
           ) : (
             <table className="tabela-resumo">
               <thead>
-                <tr><th>Produto</th><th>Tipo</th><th>Qtd.</th></tr>
+                <tr>
+                  <th>Produto</th>
+                  <th>Tipo</th>
+                  <th>Qtd.</th>
+                </tr>
               </thead>
               <tbody>
                 {mov.slice(0, 6).map((m) => (
@@ -186,14 +203,20 @@ export default function Home() {
       <section style={{ marginTop: 24 }}>
         <div className="page-head" style={{ marginBottom: 10 }}>
           <h1 style={{ fontSize: 17 }}>Próximos do vencimento</h1>
-          <Link to="/produtos"><button className="ghost small">Todos os produtos</button></Link>
+          <Link to="/produtos">
+            <button className="ghost small">Todos os produtos</button>
+          </Link>
         </div>
         {proximos.length === 0 ? (
           <div className="empty">Nenhum produto com validade cadastrada.</div>
         ) : (
           <table className="tabela-resumo">
             <thead>
-              <tr><th>Produto</th><th>Validade</th><th>Qtd.</th></tr>
+              <tr>
+                <th>Produto</th>
+                <th>Validade</th>
+                <th>Qtd.</th>
+              </tr>
             </thead>
             <tbody>
               {proximos.map((v, i) => (

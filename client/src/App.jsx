@@ -14,9 +14,7 @@ import Configuracoes from "./pages/Configuracoes.jsx";
 const GRUPOS = [
   {
     nome: "Geral",
-    itens: [
-      { label: "Início", path: "/", icone: "🏠" },
-    ],
+    itens: [{ label: "Início", path: "/", icone: "🏠" }],
   },
   {
     nome: "Gestão",
@@ -102,9 +100,7 @@ function Layout({ children }) {
             {usuario?.foto ? (
               <img src={usuario.foto} alt="" className="sidebar-avatar" />
             ) : (
-              <div className="sidebar-avatar sidebar-avatar-text">
-                {(usuario?.nome || "?")[0]}
-              </div>
+              <div className="sidebar-avatar sidebar-avatar-text">{(usuario?.nome || "?")[0]}</div>
             )}
             {!recolhido && (
               <div className="sidebar-usuario-info">
@@ -115,7 +111,10 @@ function Layout({ children }) {
           </div>
           {!recolhido && (
             <div className="sidebar-acoes">
-              <Link to="/configuracoes" className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}>
+              <Link
+                to="/configuracoes"
+                className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}
+              >
                 <span className="sidebar-icone">⚙️</span>
                 <span>Configurações</span>
               </Link>
@@ -129,7 +128,11 @@ function Layout({ children }) {
 
         {recolhido && (
           <div className="sidebar-footer-mini">
-            <Link to="/configuracoes" className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`} title="Configurações">
+            <Link
+              to="/configuracoes"
+              className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}
+              title="Configurações"
+            >
               <span className="sidebar-icone">⚙️</span>
             </Link>
             <button className="sidebar-link sidebar-btn" onClick={sair} title="Sair">
@@ -173,17 +176,63 @@ export default function App() {
   if (carregando) return <p className="center">Carregando…</p>;
   return (
     <Routes>
+      <Route path="/login" element={usuario ? <Navigate to="/" replace /> : <Login />} />
       <Route
-        path="/login"
-        element={usuario ? <Navigate to="/" replace /> : <Login />}
+        path="/"
+        element={
+          <Privado>
+            <Home />
+          </Privado>
+        }
       />
-      <Route path="/" element={<Privado><Home /></Privado>} />
-      <Route path="/produtos" element={<Privado><Produtos /></Privado>} />
-      <Route path="/estoque" element={<Privado><Estoque /></Privado>} />
-      <Route path="/listas" element={<Privado><Listas /></Privado>} />
-      <Route path="/relatorios" element={<Privado><Relatorios /></Privado>} />
-      <Route path="/categorias" element={<Privado><Categorias /></Privado>} />
-      <Route path="/configuracoes" element={<Privado><Configuracoes /></Privado>} />
+      <Route
+        path="/produtos"
+        element={
+          <Privado>
+            <Produtos />
+          </Privado>
+        }
+      />
+      <Route
+        path="/estoque"
+        element={
+          <Privado>
+            <Estoque />
+          </Privado>
+        }
+      />
+      <Route
+        path="/listas"
+        element={
+          <Privado>
+            <Listas />
+          </Privado>
+        }
+      />
+      <Route
+        path="/relatorios"
+        element={
+          <Privado>
+            <Relatorios />
+          </Privado>
+        }
+      />
+      <Route
+        path="/categorias"
+        element={
+          <Privado>
+            <Categorias />
+          </Privado>
+        }
+      />
+      <Route
+        path="/configuracoes"
+        element={
+          <Privado>
+            <Configuracoes />
+          </Privado>
+        }
+      />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );

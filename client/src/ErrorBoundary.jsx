@@ -16,7 +16,12 @@ export default class ErrorBoundary extends Component {
         <div style={{ padding: 40, textAlign: "center" }}>
           <h1>Algo deu errado</h1>
           <p className="erro">{this.state.erro.message}</p>
-          <button onClick={() => { this.setState({ erro: null }); window.location.href = "/"; }}>
+          <button
+            onClick={() => {
+              this.setState({ erro: null });
+              window.location.href = "/";
+            }}
+          >
             Voltar ao início
           </button>
         </div>

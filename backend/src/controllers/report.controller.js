@@ -1,6 +1,6 @@
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/db");
-const { Product, Movement, ShoppingList, User } = require("../models");
+const { Product, ShoppingList, User } = require("../models");
 
 function periodoInicio(dias) {
   const n = Number(dias);
@@ -82,14 +82,30 @@ async function listasPendentes(req, res) {
 
   let listas = await ShoppingList.findAll({ where: filtro, order: [["createdAt", "DESC"]] });
 
-  const produtoIds = [...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean)))];
+  const produtoIds = [
+    ...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean))),
+  ];
   const produtos = produtoIds.length
-    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    ? (
+        await Product.findAll({
+          where: { id: produtoIds },
+          attributes: ["id", "nome", "categoria"],
+        })
+      ).reduce((acc, p) => {
+        acc[p.id] = p;
+        return acc;
+      }, {})
     : {};
 
   const userIds = [...new Set(listas.map((l) => l.criadoPor).filter(Boolean))];
   const usuarios = userIds.length
-    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce((acc, u) => { acc[u.id] = u; return acc; }, {})
+    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce(
+        (acc, u) => {
+          acc[u.id] = u;
+          return acc;
+        },
+        {},
+      )
     : {};
 
   for (const l of listas) {
@@ -104,7 +120,7 @@ async function listasPendentes(req, res) {
 
   if (req.query.categoria) {
     listas = listas.filter((l) =>
-      l.itens.some((i) => i.produto && i.produto.categoria === req.query.categoria)
+      l.itens.some((i) => i.produto && i.produto.categoria === req.query.categoria),
     );
   }
 
@@ -113,7 +129,7 @@ async function listasPendentes(req, res) {
     obj.totalItens = l.itens.reduce((s, i) => s + (Number(i.quantidade) || 0), 0);
     obj.valorEstimado = l.itens.reduce(
       (s, i) => s + (Number(i.precoUnitario) || 0) * (Number(i.quantidade) || 0),
-      0
+      0,
     );
     return obj;
   });
@@ -140,4 +156,10 @@ async function exportarCSV(req, res) {
   return res.send(linhas.join("\n"));
 }
 
-module.exports = { estoqueBaixo, valorTotalEstoque, maisMovimentados, listasPendentes, exportarCSV };
+module.exports = {
+  estoqueBaixo,
+  valorTotalEstoque,
+  maisMovimentados,
+  listasPendentes,
+  exportarCSV,
+};

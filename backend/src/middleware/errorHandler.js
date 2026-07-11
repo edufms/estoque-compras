@@ -1,6 +1,6 @@
 const { ValidationError, BaseError } = require("sequelize");
 
-function errorHandler(err, req, res, next) {
+function errorHandler(err, req, res, _next) {
   console.error(err.stack);
   let status = err.status || 500;
   let mensagem = err.message || "Erro interno do servidor";

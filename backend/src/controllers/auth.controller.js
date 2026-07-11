@@ -1,6 +1,5 @@
 const { User } = require("../models");
 const { gerarToken } = require("../middleware/auth");
-const { Op } = require("sequelize");
 
 async function cadastrar(req, res) {
   const { nome, email, senha, role } = req.body;

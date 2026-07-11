@@ -1,48 +1,52 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 
-const Product = sequelize.define("Product", {
-  nome: {
-    type: DataTypes.STRING,
-    allowNull: false,
+const Product = sequelize.define(
+  "Product",
+  {
+    nome: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    descricao: {
+      type: DataTypes.TEXT,
+      defaultValue: "",
+    },
+    categoria: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    preco: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      validate: { min: 0 },
+    },
+    quantidade: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
+      validate: { min: 0 },
+    },
+    estoqueMinimo: {
+      type: DataTypes.FLOAT,
+      allowNull: false,
+      defaultValue: 0,
+      validate: { min: 0 },
+    },
+    validades: {
+      type: DataTypes.JSONB,
+      defaultValue: [],
+    },
+    criadoPor: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
   },
-  descricao: {
-    type: DataTypes.TEXT,
-    defaultValue: "",
+  {
+    tableName: "Products",
+    timestamps: true,
   },
-  categoria: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  preco: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    validate: { min: 0 },
-  },
-  quantidade: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    defaultValue: 0,
-    validate: { min: 0 },
-  },
-  estoqueMinimo: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    defaultValue: 0,
-    validate: { min: 0 },
-  },
-  validades: {
-    type: DataTypes.JSONB,
-    defaultValue: [],
-  },
-  criadoPor: {
-    type: DataTypes.INTEGER,
-    allowNull: true,
-  },
-}, {
-  tableName: "Products",
-  timestamps: true,
-});
+);
 
 Product.prototype.abaixoDoMinimo = function () {
   return this.quantidade <= this.estoqueMinimo;

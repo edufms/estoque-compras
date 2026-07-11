@@ -3,9 +3,11 @@
 MVP em Node.js (Express + MongoDB) com controle de estoque, listas de compras automáticas/manuais, relatórios e autenticação JWT.
 
 ## Tecnologias
+
 Node.js, Express, MongoDB, Mongoose, JWT, bcryptjs, Swagger, Jest.
 
 ## Como rodar
+
 1. Instale o MongoDB e crie um banco.
 2. Configure o `.env` (veja `.env.example`).
 3. `npm install`
@@ -14,9 +16,11 @@ Node.js, Express, MongoDB, Mongoose, JWT, bcryptjs, Swagger, Jest.
 Servidor em `http://localhost:3000`. Swagger em `http://localhost:3000/api-docs`.
 
 ## Testes
+
 `npm test` (usa MongoDB em memória, não precisa de instância externa).
 
 ## Endpoints principais
+
 - `POST /api/auth/cadastrar` · `POST /api/auth/login` · `GET /api/auth/perfil`
 - `GET/POST/PUT/DELETE /api/produtos`
 - `POST /api/estoque/:id/entrada` · `POST /api/estoque/:id/saida` · `GET /api/estoque/historico`

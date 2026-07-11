@@ -110,7 +110,8 @@ async function run() {
     for (const row of rows) {
       const cols = Object.keys(row).filter((c) => {
         const v = row[c];
-        if ((c.endsWith("At") || c === "precoCusto") && (v === null || v === undefined || v === "")) return false;
+        if ((c.endsWith("At") || c === "precoCusto") && (v === null || v === undefined || v === ""))
+          return false;
         return true;
       });
       const cnames = cols.map((c) => '"' + c + '"').join(", ");
@@ -118,7 +119,7 @@ async function run() {
       sql += 'INSERT INTO "' + t + '" (' + cnames + ") VALUES (" + vals + ");\n";
     }
     const maxId = Math.max(...rows.map((r) => r.id));
-    sql += 'SELECT setval(\'"' + t + '_id_seq"\', ' + maxId + ", true);\n\n";
+    sql += "SELECT setval('\"" + t + "_id_seq\"', " + maxId + ", true);\n\n";
   }
 
   sql += "COMMIT;\n";
