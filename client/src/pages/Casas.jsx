@@ -3,7 +3,7 @@ import { useAuth } from "../auth.jsx";
 import ConfirmModal from "../ConfirmModal.jsx";
 
 export default function Casas() {
-  const { usuario, casas, casaAtual, criarCasa, entrarCasa, trocarCasa, sairCasa, regenerarCodigo, removerMembro, excluirCasa } = useAuth();
+  const { usuario, casas, casaAtual, criarCasa, entrarCasa, trocarCasa, sairCasa, regenerarCodigo, removerMembro, editarCasa, excluirCasa } = useAuth();
   const [aba, setAba] = useState(null);
   const [nomeNova, setNomeNova] = useState("");
   const [codigoConvite, setCodigoConvite] = useState("");
@@ -11,6 +11,8 @@ export default function Casas() {
   const [copiado, setCopiado] = useState(false);
   const [codigoAtual, setCodigoAtual] = useState("");
   const [modal, setModal] = useState(null);
+  const [editandoNome, setEditandoNome] = useState(false);
+  const [nomeEdit, setNomeEdit] = useState("");
 
   useEffect(() => {
     if (casaAtual) setCodigoAtual(casaAtual.codigo);
@@ -82,6 +84,22 @@ export default function Casas() {
       if (modal.tipo === "sair") await sairCasa(casaAtual.id);
       else if (modal.tipo === "excluir") await excluirCasa(casaAtual.id);
       else if (modal.tipo === "remover") await removerMembro(casaAtual.id, modal.userId);
+    } catch (err) {
+      setErro(err.message);
+    }
+  }
+
+  function iniciarEdicao() {
+    setNomeEdit(casaAtual.nome);
+    setEditandoNome(true);
+  }
+
+  async function salvarEdicao(e) {
+    e.preventDefault();
+    try {
+      setErro("");
+      await editarCasa(casaAtual.id, nomeEdit);
+      setEditandoNome(false);
     } catch (err) {
       setErro(err.message);
     }
@@ -168,8 +186,24 @@ export default function Casas() {
       </div>
 
       {casaAtual && (
-        <div className="casa-detalhes">
-          <h4>Convite</h4>
+        <div className="card" style={{ marginTop: "1rem" }}>
+          {editandoNome ? (
+            <form onSubmit={salvarEdicao} style={{ display: "flex", gap: "0.5rem", marginBottom: "1rem" }}>
+              <input value={nomeEdit} onChange={(e) => setNomeEdit(e.target.value)} required autoFocus />
+              <button type="submit" className="btn btn-sm">Salvar</button>
+              <button type="button" className="btn btn-sm btn-outline" onClick={() => setEditandoNome(false)}>Cancelar</button>
+            </form>
+          ) : (
+            <div className="casa-card-header">
+              <h3>{casaAtual.nome}</h3>
+              <small>{casaAtual.meuPapel}</small>
+              {(casaAtual.meuPapel === "owner" || casaAtual.meuPapel === "admin") && (
+                <button className="btn btn-sm btn-outline" onClick={iniciarEdicao} style={{ marginLeft: "auto" }}>Editar</button>
+              )}
+            </div>
+          )}
+
+          <h4 style={{ marginTop: "1rem" }}>Convite</h4>
           <div className="codigo-convite">
             <code>{codigoAtual}</code>
             <button className="btn btn-sm" onClick={copiarCodigo}>
@@ -198,7 +232,7 @@ export default function Casas() {
             ))}
           </ul>
 
-          <div className="casa-acoes">
+          <div className="casa-acoes" style={{ marginTop: "1rem" }}>
             <button className="btn btn-outline" onClick={() => setAba("criar")}>Nova Casa</button>
             <button className="btn btn-outline" onClick={() => setAba("entrar")}>Entrar em Casa</button>
             <button className="btn btn-danger" onClick={handleSair}>Sair desta casa</button>

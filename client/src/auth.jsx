@@ -117,6 +117,12 @@ export function AuthProvider({ children }) {
     setCasaAtual(detalhes);
   }
 
+  async function editarCasa(casaId, nome) {
+    const atualizada = await api.casas.editar(casaId, { nome });
+    setCasaAtual((prev) => (prev && prev.id === casaId ? { ...prev, nome: atualizada.nome } : prev));
+    await carregarCasas();
+  }
+
   async function excluirCasa(casaId) {
     await api.casas.excluir(casaId);
     await carregarCasas();
@@ -146,6 +152,7 @@ export function AuthProvider({ children }) {
         sairCasa,
         regenerarCodigo,
         removerMembro,
+        editarCasa,
         excluirCasa,
       }}
     >

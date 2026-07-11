@@ -109,6 +109,7 @@ export const api = {
     regenerarCodigo: (id) => request(`/casas/${id}/regenerar-codigo`, { method: "POST" }),
     removerMembro: (casaId, userId) =>
       request(`/casas/${casaId}/membros/${userId}`, { method: "DELETE" }),
+    editar: (id, dados) => request(`/casas/${id}`, { method: "PUT", body: dados }),
     excluir: (id) => request(`/casas/${id}`, { method: "DELETE" }),
   },
 };

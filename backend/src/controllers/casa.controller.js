@@ -150,6 +150,24 @@ async function removerMembro(req, res) {
   return res.json({ mensagem: "Membro removido" });
 }
 
+async function editar(req, res) {
+  const { nome } = req.body;
+  if (!nome || !nome.trim()) {
+    return res.status(400).json({ erro: "Nome é obrigatório" });
+  }
+  const house = await House.findByPk(req.params.id);
+  if (!house) return res.status(404).json({ erro: "Casa não encontrada" });
+  const member = await HouseMember.findOne({
+    where: { houseId: house.id, userId: req.usuario.id },
+  });
+  if (!member || (member.role !== "owner" && member.role !== "admin")) {
+    return res.status(403).json({ erro: "Sem permissão para editar" });
+  }
+  house.nome = nome.trim();
+  await house.save();
+  return res.json({ id: house.id, nome: house.nome, codigo: house.codigo });
+}
+
 async function excluir(req, res) {
   const house = await House.findByPk(req.params.id);
   if (!house) return res.status(404).json({ erro: "Casa não encontrada" });
@@ -164,4 +182,4 @@ async function excluir(req, res) {
   return res.json({ mensagem: "Casa excluída" });
 }
 
-module.exports = { listar, criar, atual, entrar, sair, regenerarCodigo, removerMembro, excluir };
+module.exports = { listar, criar, atual, entrar, sair, regenerarCodigo, removerMembro, editar, excluir };
