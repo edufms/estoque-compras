@@ -9,7 +9,7 @@ function periodoInicio(dias) {
 }
 
 async function estoqueBaixo(req, res) {
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (req.query.categoria) filtro.categoria = req.query.categoria;
   if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   const produtos = await Product.findAll({ where: filtro });
@@ -20,7 +20,7 @@ async function estoqueBaixo(req, res) {
 }
 
 async function valorTotalEstoque(req, res) {
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (req.query.categoria) filtro.categoria = req.query.categoria;
   if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   const produtos = await Product.findAll({ where: filtro });
@@ -40,8 +40,8 @@ async function maisMovimentados(req, res) {
   const inicio = periodoInicio(req.query.periodo);
 
   let whereClause = "";
-  const replacements = { limite };
-  const conditions = [];
+  const replacements = { limite, casaId: req.casaId };
+  const conditions = ["p.houseId = :casaId"];
   if (inicio) {
     conditions.push("m.createdAt >= :inicio");
     replacements.inicio = inicio;
@@ -75,7 +75,7 @@ async function maisMovimentados(req, res) {
 }
 
 async function listasPendentes(req, res) {
-  const filtro = { status: "pendente" };
+  const filtro = { status: "pendente", houseId: req.casaId };
   const inicio = periodoInicio(req.query.periodo);
   if (inicio) filtro.createdAt = { [Op.gte]: inicio };
   if (req.usuario.role !== "admin") filtro.criadoPor = req.usuario.id;
@@ -138,7 +138,7 @@ async function listasPendentes(req, res) {
 }
 
 async function exportarCSV(req, res) {
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (req.query.categoria) filtro.categoria = req.query.categoria;
   if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   const produtos = await Product.findAll({ where: filtro, order: [["nome", "ASC"]] });

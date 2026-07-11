@@ -4,6 +4,7 @@ import { useAuth } from "./auth.jsx";
 import { api } from "./api.js";
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
+import CasaModal from "./CasaModal.jsx";
 import Produtos from "./pages/Produtos.jsx";
 import Estoque from "./pages/Estoque.jsx";
 import Listas from "./pages/Listas.jsx";
@@ -34,12 +35,13 @@ const GRUPOS = [
 ];
 
 function Layout({ children }) {
-  const { usuario, logout } = useAuth();
+  const { usuario, logout, casaAtual } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [recolhido, setRecolhido] = useState(() => localStorage.getItem("sidebar") === "collapsed");
   const [tema, setTema] = useState(() => localStorage.getItem("tema") || "light");
   const [menuMobile, setMenuMobile] = useState(false);
+  const [casaModal, setCasaModal] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", tema);
@@ -96,6 +98,13 @@ function Layout({ children }) {
         </nav>
 
         <div className="sidebar-footer">
+          {!recolhido && casaAtual && (
+            <button className="sidebar-casa" onClick={() => setCasaModal(true)}>
+              <span className="sidebar-casa-icone">🏠</span>
+              <span className="sidebar-casa-nome">{casaAtual.nome}</span>
+              <span className="sidebar-casa-seta">▾</span>
+            </button>
+          )}
           <div className="sidebar-usuario">
             {usuario?.foto ? (
               <img src={usuario.foto} alt="" className="sidebar-avatar" />
@@ -128,6 +137,11 @@ function Layout({ children }) {
 
         {recolhido && (
           <div className="sidebar-footer-mini">
+            {casaAtual && (
+              <button className="sidebar-link" onClick={() => setCasaModal(true)} title="Casas">
+                <span className="sidebar-icone">🏠</span>
+              </button>
+            )}
             <Link
               to="/configuracoes"
               className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}
@@ -141,6 +155,7 @@ function Layout({ children }) {
           </div>
         )}
       </aside>
+      <CasaModal aberto={casaModal} onFechar={() => setCasaModal(false)} />
 
       <div className="sidebar-overlay" onClick={() => setMenuMobile(false)} />
 

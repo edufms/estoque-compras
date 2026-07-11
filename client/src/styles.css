@@ -1311,3 +1311,62 @@ tbody tr:hover {
   border: none;
   cursor: pointer;
 }
+
+/* --- Casa modal --- */
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1rem;
+}
+.tab {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text-2);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+.tab.active {
+  color: var(--primary);
+  border-bottom-color: var(--primary);
+}
+.casas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.casa-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+}
+.casa-item.active {
+  border-color: var(--primary);
+  background: var(--surface-2);
+}
+.casa-info { flex: 1; }
+.casa-info small { display: block; color: var(--text-2); font-size: 0.8rem; }
+.casa-detalhes { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); }
+.casa-detalhes h4 { margin: 0.75rem 0 0.5rem; font-size: 0.9rem; color: var(--text-2); }
+.codigo-convite { display: flex; gap: 0.5rem; align-items: center; }
+.codigo-convite code { flex: 1; padding: 0.4rem 0.6rem; background: var(--surface-2); border-radius: 4px; font-size: 0.9rem; }
+.membros-lista { list-style: none; padding: 0; margin: 0; }
+.membro-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+.membro-avatar { width: 32px; height: 32px; border-radius: 50%; overflow: hidden; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--primary); color: #fff; font-weight: 600; font-size: 0.9rem; }
+.membro-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.membro-info { flex: 1; }
+.membro-info small { display: block; color: var(--text-2); font-size: 0.75rem; }
+.casa-acoes { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.sidebar-casa { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.5rem 0.75rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 0.5rem; font-size: 0.85rem; }
+.sidebar-casa:hover { opacity: 0.9; }
+.sidebar-casa-icone { font-size: 1.1rem; }
+.sidebar-casa-nome { flex: 1; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sidebar-casa-seta { font-size: 0.7rem; }
+.sidebar-footer-mini .sidebar-link { display: flex; align-items: center; justify-content: center; padding: 0.5rem; }

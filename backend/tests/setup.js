@@ -1,6 +1,5 @@
 process.env.DATABASE_URL = "sqlite://:memory:";
 
-// Clear cached config/db so it re-reads DATABASE_URL
 delete require.cache[require.resolve("../src/config")];
 delete require.cache[require.resolve("../src/config/db")];
 
@@ -12,9 +11,10 @@ beforeAll(async () => {
 });
 
 afterEach(async () => {
-  const tables = Object.values(sequelize.models);
-  for (const model of tables) {
-    await model.destroy({ where: {}, truncate: { cascade: true } });
+  const order = ["Movement", "ShoppingList", "Product", "Category", "HouseMember", "House", "User"];
+  for (const name of order) {
+    const model = sequelize.models[name];
+    if (model) await model.destroy({ where: {} });
   }
 });
 

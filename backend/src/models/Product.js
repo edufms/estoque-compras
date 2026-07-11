@@ -41,6 +41,11 @@ const Product = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: true,
     },
+    houseId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
   },
   {
     tableName: "Products",

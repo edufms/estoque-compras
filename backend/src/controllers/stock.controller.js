@@ -8,7 +8,7 @@ async function entrada(req, res) {
   if (!quantidade || quantidade <= 0) {
     return res.status(400).json({ erro: "quantidade deve ser maior que zero" });
   }
-  const produto = await Product.findByPk(req.params.id);
+  const produto = await Product.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
 
   produto.quantidade += Number(quantidade);
@@ -24,6 +24,7 @@ async function entrada(req, res) {
     usuario: req.usuario.id,
     observacao: observacao || "",
     validades: Array.isArray(validades) ? validades : [],
+    houseId: req.casaId,
   });
 
   return res.status(201).json({ produto, movimento });
@@ -34,7 +35,7 @@ async function saida(req, res) {
   if (!quantidade || quantidade <= 0) {
     return res.status(400).json({ erro: "quantidade deve ser maior que zero" });
   }
-  const produto = await Product.findByPk(req.params.id);
+  const produto = await Product.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
 
   const qtd = Number(quantidade);
@@ -66,6 +67,7 @@ async function saida(req, res) {
     quantidade: qtd,
     usuario: req.usuario.id,
     observacao: observacao || "",
+    houseId: req.casaId,
   });
 
   const alerta = produto.quantidade <= produto.estoqueMinimo;
@@ -73,7 +75,7 @@ async function saida(req, res) {
 }
 
 async function historico(req, res) {
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (req.query.produto) filtro.produto = req.query.produto;
   if (req.query.tipo) filtro.tipo = req.query.tipo;
   if (req.usuario.role !== "admin") filtro.usuario = req.usuario.id;
@@ -110,7 +112,7 @@ async function importar(req, res) {
     const valorUnitario = Number(linha.valorUnitario) || 0;
     const validade = linha.validade ? String(linha.validade).trim() : "";
 
-    let produto = await Product.findOne({ where: { nome: { [likeOp()]: nome } } });
+    let produto = await Product.findOne({ where: { nome: { [likeOp()]: nome }, houseId: req.casaId } });
     if (!produto) {
       produto = await Product.create({
         nome,
@@ -119,6 +121,7 @@ async function importar(req, res) {
         quantidade: 0,
         estoqueMinimo: 0,
         validades: [],
+        houseId: req.casaId,
       });
     } else {
       produto.categoria = categoria || produto.categoria;
@@ -140,6 +143,7 @@ async function importar(req, res) {
       quantidade,
       usuario: req.usuario.id,
       observacao: "Importação CSV",
+      houseId: req.casaId,
     });
 
     importados.push({ nome, produto: produto.id, quantidade });
@@ -149,7 +153,7 @@ async function importar(req, res) {
 }
 
 async function exportar(req, res) {
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (req.usuario.role !== "admin") {
     filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   }

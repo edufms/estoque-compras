@@ -1,4 +1,5 @@
 const TOKEN_KEY = "estoque_token";
+const CASA_KEY = "estoque_casa_id";
 
 function store(persistent) {
   return persistent ? localStorage : sessionStorage;
@@ -16,6 +17,16 @@ export function setToken(token, persistent = true) {
 export function clearToken() {
   localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(CASA_KEY);
+}
+
+export function getCasaId() {
+  return localStorage.getItem(CASA_KEY);
+}
+
+export function setCasaId(id) {
+  if (id) localStorage.setItem(CASA_KEY, id);
+  else localStorage.removeItem(CASA_KEY);
 }
 
 async function request(path, { method = "GET", body, auth = true } = {}) {
@@ -23,6 +34,8 @@ async function request(path, { method = "GET", body, auth = true } = {}) {
   if (auth) {
     const token = getToken();
     if (token) headers["Authorization"] = `Bearer ${token}`;
+    const casaId = getCasaId();
+    if (casaId) headers["X-Casa-Id"] = casaId;
   }
   const res = await fetch(`/api${path}`, {
     method,
@@ -85,5 +98,17 @@ export const api = {
     listar: () => request("/categorias"),
     salvar: (nome, icone) => request("/categorias", { method: "POST", body: { nome, icone } }),
     remover: (nome) => request(`/categorias/${encodeURIComponent(nome)}`, { method: "DELETE" }),
+  },
+
+  casas: {
+    listar: () => request("/casas"),
+    criar: (dados) => request("/casas", { method: "POST", body: dados }),
+    atual: () => request("/casas/atual"),
+    entrar: (codigo) => request("/casas/entrar", { method: "POST", body: { codigo } }),
+    sair: (id) => request(`/casas/${id}/sair`, { method: "POST" }),
+    regenerarCodigo: (id) => request(`/casas/${id}/regenerar-codigo`, { method: "POST" }),
+    removerMembro: (casaId, userId) =>
+      request(`/casas/${casaId}/membros/${userId}`, { method: "DELETE" }),
+    excluir: (id) => request(`/casas/${id}`, { method: "DELETE" }),
   },
 };

@@ -5,7 +5,7 @@ const { likeOp } = require("../utils/dialect");
 
 async function listar(req, res) {
   const { nome, categoria, limite, offset } = req.query;
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (nome) filtro.nome = { [likeOp()]: `%${nome}%` };
   if (categoria) filtro.categoria = { [likeOp()]: `%${categoria}%` };
   if (req.usuario.role !== "admin") {
@@ -19,7 +19,7 @@ async function listar(req, res) {
 }
 
 async function obter(req, res) {
-  const produto = await Product.findByPk(req.params.id);
+  const produto = await Product.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
   return res.json(produto);
 }
@@ -29,7 +29,9 @@ async function criar(req, res) {
   if (!nome || !categoria || preco == null) {
     return res.status(400).json({ erro: "nome, categoria e preco são obrigatórios" });
   }
-  const existente = await Product.findOne({ where: { nome: { [likeOp()]: String(nome).trim() } } });
+  const existente = await Product.findOne({
+    where: { nome: { [likeOp()]: String(nome).trim() }, houseId: req.casaId },
+  });
   if (existente) {
     return res.status(409).json({ erro: "Já existe um produto com este nome" });
   }
@@ -42,6 +44,7 @@ async function criar(req, res) {
     estoqueMinimo: estoqueMinimo || 0,
     validades: Array.isArray(validades) ? validades : [],
     criadoPor: req.usuario.id,
+    houseId: req.casaId,
   });
   const qtd = Number(quantidade) || 0;
   if (qtd > 0) {
@@ -57,7 +60,7 @@ async function criar(req, res) {
 }
 
 async function atualizar(req, res) {
-  const produto = await Product.findByPk(req.params.id);
+  const produto = await Product.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
   const campos = ["nome", "descricao", "categoria", "preco", "estoqueMinimo", "validades"];
   campos.forEach((c) => {
@@ -68,7 +71,7 @@ async function atualizar(req, res) {
 }
 
 async function remover(req, res) {
-  const produto = await Product.findByPk(req.params.id);
+  const produto = await Product.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
   await produto.destroy();
   return res.json({ mensagem: "Produto removido com sucesso" });
@@ -112,7 +115,9 @@ async function importar(req, res) {
   const ignorados = [];
   for (const g of Object.values(agrupados)) {
     const validades = mesclarValidades([], g.validades);
-    const existente = await Product.findOne({ where: { nome: { [likeOp()]: g.nome } } });
+    const existente = await Product.findOne({
+      where: { nome: { [likeOp()]: g.nome }, houseId: req.casaId },
+    });
     if (existente) {
       ignorados.push({ nome: g.nome, motivo: "Já existe" });
       continue;
@@ -126,6 +131,7 @@ async function importar(req, res) {
       descricao: g.descricao,
       validades,
       criadoPor: req.usuario.id,
+      houseId: req.casaId,
     });
     if (g.quantidade > 0) {
       await Movement.create({

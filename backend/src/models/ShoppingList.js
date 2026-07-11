@@ -20,6 +20,11 @@ const ShoppingList = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    houseId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+    },
     finalizadaEm: {
       type: DataTypes.DATE,
       defaultValue: null,

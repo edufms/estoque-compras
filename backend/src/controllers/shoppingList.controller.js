@@ -4,7 +4,7 @@ const { normalizarValidades, mesclarValidades, subtrairValidades } = require("..
 const { likeOp } = require("../utils/dialect");
 
 async function criarAutomatica(req, res) {
-  const produtos = await Product.findAll({});
+  const produtos = await Product.findAll({ where: { houseId: req.casaId } });
   const itensBaixo = produtos.filter((p) => p.quantidade <= p.estoqueMinimo);
 
   const itens = itensBaixo.map((p) => ({
@@ -20,6 +20,7 @@ async function criarAutomatica(req, res) {
     nome: "Reposição Automática",
     itens,
     criadoPor: req.usuario.id,
+    houseId: req.casaId,
   });
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
@@ -41,14 +42,14 @@ async function criarAutomatica(req, res) {
   return res.status(201).json(lista);
 }
 
-async function resolverProduto(item) {
+async function resolverProduto(item, casaId) {
   if (item.produto) {
-    const existente = await Product.findByPk(item.produto);
+    const existente = await Product.findOne({ where: { id: item.produto, houseId: casaId } });
     if (existente) return existente;
   }
   if (item.nome) {
     const nomeNormalizado = String(item.nome).trim();
-    const existente = await Product.findOne({ where: { nome: { [likeOp()]: nomeNormalizado } } });
+    const existente = await Product.findOne({ where: { nome: { [likeOp()]: nomeNormalizado }, houseId: casaId } });
     if (existente) return existente;
     return Product.create({
       nome: nomeNormalizado,
@@ -56,6 +57,7 @@ async function resolverProduto(item) {
       preco: Number(item.precoUnitario) || 0,
       quantidade: 0,
       estoqueMinimo: 0,
+      houseId: casaId,
     });
   }
   return null;
@@ -74,7 +76,7 @@ async function criarManual(req, res) {
     if (!item.produto && !item.nome) {
       return res.status(400).json({ erro: "Cada item precisa de produto ou nome" });
     }
-    const produto = await resolverProduto(item);
+    const produto = await resolverProduto(item, req.casaId);
     if (!produto) {
       return res.status(400).json({ erro: "Não foi possível resolver o produto do item" });
     }
@@ -88,6 +90,7 @@ async function criarManual(req, res) {
     nome: nome || "Lista de Compras",
     itens: itensResolvidos,
     criadoPor: req.usuario.id,
+    houseId: req.casaId,
   });
 
   const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
@@ -111,7 +114,7 @@ async function criarManual(req, res) {
 
 async function listar(req, res) {
   const { status, limite, offset } = req.query;
-  const filtro = {};
+  const filtro = { houseId: req.casaId };
   if (status) filtro.status = status;
   if (req.usuario.role !== "admin") filtro.criadoPor = req.usuario.id;
   const options = { where: filtro, order: [["createdAt", "DESC"]] };
@@ -159,7 +162,7 @@ async function listar(req, res) {
 }
 
 async function obter(req, res) {
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
 
   if (Array.isArray(lista.itens)) {
@@ -188,7 +191,7 @@ async function obter(req, res) {
 
 async function marcarComprado(req, res) {
   const { produtoId, comprado } = req.body;
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
   const item = lista.itens.find((i) => String(i.produto) === String(produtoId));
   if (!item) return res.status(404).json({ erro: "Item não encontrado na lista" });
@@ -198,7 +201,7 @@ async function marcarComprado(req, res) {
 }
 
 async function finalizar(req, res) {
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
   if (lista.status === "finalizada") {
     return res.status(400).json({ erro: "Lista já finalizada" });
@@ -221,6 +224,7 @@ async function finalizar(req, res) {
       observacao: `Compra via lista ${lista.id}`,
       validades: normalizarValidades(item.validades),
       listaId: lista.id,
+      houseId: req.casaId,
     });
   }
 
@@ -246,7 +250,7 @@ async function finalizar(req, res) {
 }
 
 async function reabrir(req, res) {
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
   if (lista.status !== "finalizada") {
     return res.status(400).json({ erro: "Apenas listas finalizadas podem ser reabertas" });
@@ -291,7 +295,7 @@ async function reabrir(req, res) {
 }
 
 async function atualizar(req, res) {
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
   if (lista.status === "finalizada") {
     return res.status(400).json({ erro: "Lista finalizada não pode ser alterada" });
@@ -310,7 +314,7 @@ async function atualizar(req, res) {
       if (!item.produto && !item.nome) {
         return res.status(400).json({ erro: "Cada item precisa de produto ou nome" });
       }
-      const produto = await resolverProduto(item);
+      const produto = await resolverProduto(item, req.casaId);
       if (!produto) {
         return res.status(400).json({ erro: "Não foi possível resolver o produto do item" });
       }
@@ -347,7 +351,7 @@ async function atualizar(req, res) {
 }
 
 async function remover(req, res) {
-  const lista = await ShoppingList.findByPk(req.params.id);
+  const lista = await ShoppingList.findOne({ where: { id: req.params.id, houseId: req.casaId } });
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
   await lista.destroy();
   return res.json({ mensagem: "Lista removida com sucesso" });

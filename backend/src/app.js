@@ -7,6 +7,7 @@ const swaggerDocs = require("./config/swagger");
 const { errorHandler, naoEncontrado } = require("./middleware/errorHandler");
 
 const authRoutes = require("./routes/auth.routes");
+const casaRoutes = require("./routes/casa.routes");
 const productRoutes = require("./routes/product.routes");
 const stockRoutes = require("./routes/stock.routes");
 const shoppingListRoutes = require("./routes/shoppingList.routes");
@@ -32,6 +33,7 @@ function criarApp() {
   app.get("/health", (req, res) => res.json({ status: "ok" }));
 
   app.use("/api/auth", authRoutes);
+  app.use("/api/casas", casaRoutes);
   app.use("/api/produtos", productRoutes);
   app.use("/api/estoque", stockRoutes);
   app.use("/api/listas", shoppingListRoutes);
