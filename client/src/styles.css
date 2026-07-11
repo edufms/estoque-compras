@@ -531,6 +531,7 @@ select:focus {
   white-space: nowrap;
 }
 
+.table-compact .grupo-row { cursor: pointer; }
 .table-compact .grupo-row td {
   background: var(--surface-2);
   font-weight: 700;
@@ -538,6 +539,10 @@ select:focus {
   padding-top: 8px;
   padding-bottom: 8px;
 }
+.seta-expandir { display: inline-block; width: 16px; font-size: 10px; color: var(--muted); }
+.produto-zerado { opacity: 0.5; }
+.produto-zerado td,
+.prod-card.produto-zerado { text-decoration: line-through; }
 
 .icones {
   display: flex;

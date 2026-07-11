@@ -6,7 +6,7 @@ import { AlertModal } from "../AlertModal.jsx";
 
 function ModalManual({ produtos, onClose, onSalvar }) {
   const [nome, setNome] = useState("");
-  const [itens, setItens] = useState([{ nome: "", categoria: "", quantidade: 1, validades: [] }]);
+  const [itens, setItens] = useState([{ nome: "", categoria: "", quantidade: 1, validades: [], precoUnitario: "" }]);
   const [erro, setErro] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -18,7 +18,7 @@ function ModalManual({ produtos, onClose, onSalvar }) {
   }
 
   function addItem() {
-    setItens((arr) => [...arr, { nome: "", categoria: "", quantidade: 1, validades: [] }]);
+    setItens((arr) => [...arr, { nome: "", categoria: "", quantidade: 1, validades: [], precoUnitario: "" }]);
   }
 
   function removeItem(i) {
@@ -36,6 +36,7 @@ function ModalManual({ produtos, onClose, onSalvar }) {
           nome: i.nome.trim(),
           categoria: i.categoria.trim(),
           quantidade: Number(i.quantidade) || 1,
+          precoUnitario: Number(i.precoUnitario) || 0,
           validades: (i.validades || []).filter(Boolean),
         }));
       if (listaItens.length === 0) throw new Error("Adicione ao menos um item com nome");
@@ -106,6 +107,17 @@ function ModalManual({ produtos, onClose, onSalvar }) {
                     onChange={(e) => updateItem(i, "quantidade", e.target.value)}
                   />
                 </label>
+                <label style={{ width: 120 }}>
+                  Preço (R$)
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={it.precoUnitario}
+                    onChange={(e) => updateItem(i, "precoUnitario", e.target.value)}
+                    placeholder="0,00"
+                  />
+                </label>
                 <button
                   type="button"
                   className="small danger"
@@ -122,8 +134,8 @@ function ModalManual({ produtos, onClose, onSalvar }) {
               />
             </div>
           ))}
-          <button type="button" className="ghost" onClick={addItem}>
-            Adicionar item
+          <button type="button" className="ghost" onClick={addItem} style={{ width: "100%", marginTop: 8, background: "var(--surface-2)", fontWeight: 600 }}>
+            + Adicionar item
           </button>
           <div className="modal-actions">
             <button type="button" className="ghost" onClick={onClose}>

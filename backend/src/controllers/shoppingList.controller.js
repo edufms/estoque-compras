@@ -83,6 +83,7 @@ async function criarManual(req, res) {
     itensResolvidos.push({
       produto: produto.id,
       quantidade: Number(item.quantidade),
+      precoUnitario: Number(item.precoUnitario) || 0,
       validades: normalizarValidades(item.validades),
     });
   }

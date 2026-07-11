@@ -5,7 +5,7 @@ import { carregarCategorias, getCategorias, iconeDe } from "../categorias.js";
 import { ValidadesField, ListaValidades } from "../ValidadesField.jsx";
 import { ImportCSVModal } from "../ImportCSVModal.jsx";
 import { AlertModal } from "../AlertModal.jsx";
-import { ConfirmModal } from "../ConfirmModal.jsx";
+import ConfirmModal from "../ConfirmModal.jsx";
 
 function ModalProduto({ produto, categorias = [], onClose, onSalvar }) {
   const [form, setForm] = useState({
@@ -154,6 +154,19 @@ export default function Produtos() {
   const [ordem, setOrdem] = useState("asc");
   const [soComSaldo, setSoComSaldo] = useState(false);
   const [categorias, setCategorias] = useState([]);
+  const [expandidas, setExpandidas] = useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem("prod_cats_expandidas") || "[]")); }
+    catch { return new Set(); }
+  });
+
+  function toggleCat(cat) {
+    setExpandidas((prev) => {
+      const next = new Set(prev);
+      if (next.has(cat)) next.delete(cat); else next.add(cat);
+      localStorage.setItem("prod_cats_expandidas", JSON.stringify([...next]));
+      return next;
+    });
+  }
 
   function recarregarCategorias() {
     setCategorias(getCategorias());
@@ -178,10 +191,17 @@ export default function Produtos() {
       ordem === "asc" ? a.nome.localeCompare(b.nome) : b.nome.localeCompare(a.nome),
     );
 
+  function zerado(p) { return p.quantidade <= 0; }
+
   const grupos = categoriasUnicas
-    .map((cat) => ({ cat, itens: visiveis.filter((p) => p.categoria === cat) }))
+    .map((cat) => ({
+      cat,
+      itens: visiveis
+        .filter((p) => p.categoria === cat)
+        .sort((a, b) => zerado(a) - zerado(b) || a.nome.localeCompare(b.nome)),
+    }))
     .filter((g) => g.itens.length > 0);
-  const semCategoria = visiveis.filter((p) => !p.categoria);
+  const semCategoria = visiveis.filter((p) => !p.categoria).sort((a, b) => zerado(a) - zerado(b) || a.nome.localeCompare(b.nome));
   if (semCategoria.length > 0) grupos.push({ cat: "", itens: semCategoria });
 
   async function carregar() {
@@ -308,14 +328,15 @@ export default function Produtos() {
           <tbody>
             {grupos.map((g) => (
               <Fragment key={g.cat || "—"}>
-                <tr className="grupo-row">
+                <tr className="grupo-row" onClick={() => toggleCat(g.cat)}>
                   <td colSpan={isAdmin ? 7 : 6}>
+                    <span className="seta-expandir">{expandidas.has(g.cat) ? "▼" : "▶"}</span>
                     <span className="cat-icone">{iconeDe(g.cat, categorias)}</span>{" "}
                     {g.cat || "Sem categoria"} <span className="muted">({g.itens.length})</span>
                   </td>
                 </tr>
-                {g.itens.map((p) => (
-                  <tr key={p.id}>
+                {expandidas.has(g.cat) && g.itens.map((p) => (
+                  <tr key={p.id} className={zerado(p) ? "produto-zerado" : ""}>
                     <td data-label="Nome">{p.nome}</td>
                     <td data-label="Preço">R$ {Number(p.preco).toFixed(2)}</td>
                     <td data-label="Qtd.">{p.quantidade}</td>
@@ -329,7 +350,7 @@ export default function Produtos() {
                       )}
                     </td>
                     <td data-label="Status">
-                      {p.quantidade <= p.estoqueMinimo ? (
+                      {p.estoqueMinimo > 0 && p.quantidade <= p.estoqueMinimo ? (
                         <span className="badge warn">Abaixo</span>
                       ) : (
                         <span className="badge ok">Ok</span>
@@ -357,17 +378,19 @@ export default function Produtos() {
         <div className="grupos">
           {grupos.map((g) => (
             <section key={g.cat || "—"} className="grupo">
-              <div className="grupo-head">
+              <div className="grupo-head" onClick={() => toggleCat(g.cat)}>
+                <span className="seta-expandir">{expandidas.has(g.cat) ? "▼" : "▶"}</span>
                 <span className="cat-icone">{iconeDe(g.cat, categorias)}</span>
                 <span className="grupo-nome">{g.cat || "Sem categoria"}</span>
                 <span className="muted">({g.itens.length})</span>
               </div>
+              {expandidas.has(g.cat) && (
               <div className="prod-cards">
                 {g.itens.map((p) => (
-                  <div className="prod-card" key={p.id}>
+                  <div className={`prod-card${zerado(p) ? " produto-zerado" : ""}`} key={p.id}>
                     <div className="prod-card-head">
                       <span className="prod-nome">{p.nome}</span>
-                      {p.quantidade <= p.estoqueMinimo ? (
+                      {p.estoqueMinimo > 0 && p.quantidade <= p.estoqueMinimo ? (
                         <span className="badge warn">Abaixo</span>
                       ) : (
                         <span className="badge ok">Ok</span>
@@ -406,6 +429,7 @@ export default function Produtos() {
                   </div>
                 ))}
               </div>
+              )}
             </section>
           ))}
         </div>
