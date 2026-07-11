@@ -108,7 +108,11 @@ async function run() {
     const rows = data[t];
     if (!rows || rows.length === 0) continue;
     for (const row of rows) {
-      const cols = Object.keys(row);
+      const cols = Object.keys(row).filter((c) => {
+        const v = row[c];
+        if ((c.endsWith("At") || c === "precoCusto") && (v === null || v === undefined || v === "")) return false;
+        return true;
+      });
       const cnames = cols.map((c) => '"' + c + '"').join(", ");
       const vals = cols.map((c) => esc(row[c], c)).join(", ");
       sql += 'INSERT INTO "' + t + '" (' + cnames + ") VALUES (" + vals + ");\n";
