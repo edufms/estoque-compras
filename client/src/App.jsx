@@ -4,13 +4,13 @@ import { useAuth } from "./auth.jsx";
 import { api } from "./api.js";
 import Login from "./pages/Login.jsx";
 import Home from "./pages/Home.jsx";
-import CasaModal from "./CasaModal.jsx";
 import Produtos from "./pages/Produtos.jsx";
 import Estoque from "./pages/Estoque.jsx";
 import Listas from "./pages/Listas.jsx";
 import Relatorios from "./pages/Relatorios.jsx";
 import Categorias from "./pages/Categorias.jsx";
 import Configuracoes from "./pages/Configuracoes.jsx";
+import Casas from "./pages/Casas.jsx";
 
 const GRUPOS = [
   {
@@ -41,7 +41,6 @@ function Layout({ children }) {
   const [recolhido, setRecolhido] = useState(() => localStorage.getItem("sidebar") === "collapsed");
   const [tema, setTema] = useState(() => localStorage.getItem("tema") || "light");
   const [menuMobile, setMenuMobile] = useState(false);
-  const [casaModal, setCasaModal] = useState(false);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", tema);
@@ -99,11 +98,11 @@ function Layout({ children }) {
 
         <div className="sidebar-footer">
           {!recolhido && (
-            <button className="sidebar-casa" onClick={() => setCasaModal(true)}>
+            <Link to="/casas" className="sidebar-casa">
               <span className="sidebar-casa-icone">🏠</span>
               <span className="sidebar-casa-nome">{casaAtual ? casaAtual.nome : "Nenhuma casa"}</span>
               <span className="sidebar-casa-seta">▾</span>
-            </button>
+            </Link>
           )}
           <div className="sidebar-usuario">
             {usuario?.foto ? (
@@ -137,9 +136,9 @@ function Layout({ children }) {
 
         {recolhido && (
           <div className="sidebar-footer-mini">
-            <button className="sidebar-link" onClick={() => setCasaModal(true)} title="Casas">
+            <Link to="/casas" className="sidebar-link" title="Casas">
               <span className="sidebar-icone">🏠</span>
-            </button>
+            </Link>
             <Link
               to="/configuracoes"
               className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}
@@ -153,8 +152,6 @@ function Layout({ children }) {
           </div>
         )}
       </aside>
-      <CasaModal aberto={casaModal} onFechar={() => setCasaModal(false)} />
-
       <div className="sidebar-overlay" onClick={() => setMenuMobile(false)} />
 
       <div className="app-main">
@@ -243,6 +240,14 @@ export default function App() {
         element={
           <Privado>
             <Configuracoes />
+          </Privado>
+        }
+      />
+      <Route
+        path="/casas"
+        element={
+          <Privado>
+            <Casas />
           </Privado>
         }
       />
