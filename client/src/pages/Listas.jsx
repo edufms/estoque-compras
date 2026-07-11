@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { ValidadesField } from "../ValidadesField.jsx";
 import { ImportCSVModal } from "../ImportCSVModal.jsx";
+import { AlertModal } from "../AlertModal.jsx";
 
 function ModalManual({ produtos, onClose, onSalvar }) {
   const [nome, setNome] = useState("");
@@ -125,7 +126,7 @@ function ModalFinalizar({ lista, onClose, onConfirm }) {
         <h2>Finalizar lista</h2>
         <p className="muted">
           Ao finalizar, {lista.itens.length} item(ns) serão adicionados ao estoque.
-          O preço cadastrado de cada produto não é alterado pela compra.
+          O preço de cada produto será atualizado para o valor unitário informado na lista.
         </p>
         <div className="resumo-finalizar">
           <span className="muted">Valor total estimado da compra</span>
@@ -237,7 +238,7 @@ function CampoSugerido({ value, opcoes, onChange, placeholder, autoFocus }) {
           setFoco(true);
           setAberto(true);
         }}
-        onBlur={() => setTimeout(() => setAberto(false), 120)}
+        onBlur={() => setTimeout(() => setAberto(false), 250)}
       />
       {aberto && foco && filtradas.length > 0 && (
         <ul className="sugestoes">
@@ -266,8 +267,8 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
 
   function normalizar(it) {
     return {
-      id: it._id || it.produto?._id || `tmp-${Math.random().toString(36).slice(2)}`,
-      produto: it.produto?._id || it.produto || null,
+      id: it.id || it.produto?.id || `tmp-${Math.random().toString(36).slice(2)}`,
+      produto: it.produto?.id || it.produto || null,
       nome: it.produto?.nome || "",
       categoria: it.produto?.categoria || "",
       quantidade: it.quantidade,
@@ -311,7 +312,7 @@ function DetalheLista({ lista, produtos, onClose, onChanged, onFinalizar, onReab
           throw new Error(`A soma das validades de "${it.nome}" não pode exceder a quantidade (${it.quantidade})`);
         }
       }
-      await api.atualizarLista(lista._id, { nome: nomeLista || undefined, itens: payload });
+      await api.atualizarLista(lista.id, { nome: nomeLista || undefined, itens: payload });
       if (onChanged) onChanged();
     } catch (err) {
       setErro(err.message);
@@ -503,6 +504,7 @@ export default function Listas() {
   const [detalhe, setDetalhe] = useState(null);
   const [finalizando, setFinalizando] = useState(null);
   const [importando, setImportando] = useState(false);
+  const [alerta, setAlerta] = useState(null);
 
   async function carregar() {
     setLoading(true);
@@ -526,7 +528,7 @@ export default function Listas() {
   async function automatica() {
     try {
       const res = await api.listaAutomatica();
-      if (!res.lista) alert(res.mensagem || "Nenhum produto abaixo do mínimo.");
+      if (!res.lista) setAlerta({ mensagem: res.mensagem || "Nenhum produto abaixo do mínimo." });
       carregar();
     } catch (err) {
       setErro(err.message);
@@ -535,7 +537,7 @@ export default function Listas() {
 
   async function confirmarFinalizar() {
     try {
-      await api.finalizarLista(finalizando._id);
+      await api.finalizarLista(finalizando.id);
       carregar();
       setDetalhe(null);
       setFinalizando(null);
@@ -593,10 +595,11 @@ export default function Listas() {
         <h1>Listas de compras</h1>
         <div className="btn-row" style={{ margin: 0 }}>
           <button onClick={automatica}>Gerar automática</button>
-          <button className="ghost" onClick={() => setModal(true)}>Nova manual</button>
           <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
         </div>
       </div>
+
+      <button className="fab" onClick={() => setModal(true)}>+</button>
 
       <div className="filters">
         <select value={status} onChange={(e) => setStatus(e.target.value)}>
@@ -626,7 +629,7 @@ export default function Listas() {
           </thead>
           <tbody>
             {listas.map((l) => (
-              <tr key={l._id}>
+              <tr key={l.id}>
                 <td data-label="Nome">{l.nome}</td>
                 <td data-label="Itens">{l.itens.length}</td>
                 <td data-label="Status">
@@ -635,15 +638,15 @@ export default function Listas() {
                 <td data-label="Criado por">{l.criadoPor?.nome || "—"}</td>
                 <td data-label="Ações">
                   <div className="td-actions">
-                    <button className="small ghost" onClick={() => abrir(l._id)}>Ver</button>
+                    <button className="small ghost" onClick={() => abrir(l.id)}>Ver</button>
                     {l.status === "pendente" && (
                       <>
                         <button className="small" onClick={() => setFinalizando(l)}>Finalizar</button>
-                        <button className="small danger" onClick={() => remover(l._id)}>Excluir</button>
+                        <button className="small danger" onClick={() => remover(l.id)}>Excluir</button>
                       </>
                     )}
                     {l.status === "finalizada" && (
-                      <button className="small" onClick={() => reabrir(l._id)}>Reabrir</button>
+                      <button className="small" onClick={() => reabrir(l.id)}>Reabrir</button>
                     )}
                   </div>
                 </td>
@@ -682,7 +685,7 @@ export default function Listas() {
             setDetalhe(null);
             setFinalizando(l);
           }}
-          onReabrir={(l) => reabrir(l._id)}
+          onReabrir={(l) => reabrir(l.id)}
         />
       )}
 
@@ -691,6 +694,14 @@ export default function Listas() {
           lista={finalizando}
           onClose={() => setFinalizando(null)}
           onConfirm={confirmarFinalizar}
+        />
+      )}
+
+      {alerta && (
+        <AlertModal
+          titulo="Lista automática"
+          mensagem={alerta.mensagem}
+          onClose={() => setAlerta(null)}
         />
       )}
     </div>

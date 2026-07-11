@@ -3,6 +3,9 @@ import { api } from "../api.js";
 import { useAuth } from "../auth.jsx";
 import { carregarCategorias, getCategorias, iconeDe } from "../categorias.js";
 import { ValidadesField, ListaValidades } from "../ValidadesField.jsx";
+import { ImportCSVModal } from "../ImportCSVModal.jsx";
+import { AlertModal } from "../AlertModal.jsx";
+import { ConfirmModal } from "../ConfirmModal.jsx";
 
 function ModalProduto({ produto, categorias = [], onClose, onSalvar }) {
   const [form, setForm] = useState({
@@ -37,7 +40,7 @@ function ModalProduto({ produto, categorias = [], onClose, onSalvar }) {
         estoqueMinimo: Number(form.estoqueMinimo) || 0,
         validades: validades.map((v) => ({ data: v.data, quantidade: Number(v.quantidade) || 0 })),
       };
-      if (produto) await api.atualizarProduto(produto._id, dados);
+      if (produto) await api.atualizarProduto(produto.id, dados);
       else await api.criarProduto(dados);
       onSalvar();
     } catch (err) {
@@ -80,18 +83,16 @@ function ModalProduto({ produto, categorias = [], onClose, onSalvar }) {
             Preço (R$)
             <input type="number" step="0.01" min="0" value={form.preco} onChange={(e) => update("preco", e.target.value)} required />
           </label>
-          {!produto && (
-            <div style={{ display: "flex", gap: 12 }}>
-              <label style={{ flex: 1 }}>
-                Quantidade inicial
-                <input type="number" min="0" value={form.quantidade} onChange={(e) => update("quantidade", e.target.value)} />
-              </label>
-              <label style={{ flex: 1 }}>
-                Estoque mínimo
-                <input type="number" min="0" value={form.estoqueMinimo} onChange={(e) => update("estoqueMinimo", e.target.value)} />
-              </label>
-            </div>
-          )}
+          <div style={{ display: "flex", gap: 12 }}>
+            <label style={{ flex: 1 }}>
+              {produto ? "Quantidade atual" : "Quantidade inicial"}
+              <input type="number" min="0" value={form.quantidade} disabled={!!produto} onChange={(e) => update("quantidade", e.target.value)} />
+            </label>
+            <label style={{ flex: 1 }}>
+              Estoque mínimo
+              <input type="number" min="0" value={form.estoqueMinimo} onChange={(e) => update("estoqueMinimo", e.target.value)} />
+            </label>
+          </div>
           <div className="modal-actions">
             <button type="button" className="ghost" onClick={onClose}>
               Cancelar
@@ -115,6 +116,9 @@ export default function Produtos() {
   const [nome, setNome] = useState("");
   const [catFiltro, setCatFiltro] = useState("");
   const [modal, setModal] = useState(null);
+  const [importando, setImportando] = useState(false);
+  const [alerta, setAlerta] = useState(null);
+  const [confirmarExcluir, setConfirmarExcluir] = useState(null);
   const [visao, setVisao] = useState(() => localStorage.getItem("prod_visao") || "lista");
   const [ordem, setOrdem] = useState("asc");
   const [soComSaldo, setSoComSaldo] = useState(false);
@@ -169,13 +173,28 @@ export default function Produtos() {
   }, []);
 
   async function remover(id) {
-    if (!confirm("Remover este produto?")) return;
     try {
       await api.removerProduto(id);
+      setConfirmarExcluir(null);
       carregar();
     } catch (err) {
       setErro(err.message);
+      setConfirmarExcluir(null);
     }
+  }
+
+  async function excluirClicado(id) {
+    setConfirmarExcluir(id);
+  }
+
+  async function importarProdutos(itens) {
+    const res = await api.importarProdutos(itens);
+    const msgs = [];
+    if (res.criados) msgs.push(`${res.criados} produto(s) criado(s)`);
+    if (res.ignorados) msgs.push(`${res.ignorados} ignorado(s) (já existem)`);
+    setAlerta(msgs.join(", ") || "Nenhum produto importado");
+    setImportando(false);
+    carregar();
   }
 
   return (
@@ -183,9 +202,11 @@ export default function Produtos() {
       <div className="page-head">
         <h1>Produtos</h1>
         {isAdmin && (
-          <button onClick={() => setModal({})}>Novo produto</button>
+          <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
         )}
       </div>
+
+      {isAdmin && <button className="fab" onClick={() => setModal({})}>+</button>}
 
       <div className="filters">
         <input placeholder="Buscar por nome" value={nome} onChange={(e) => setNome(e.target.value)} />
@@ -243,7 +264,7 @@ export default function Produtos() {
                   </td>
                 </tr>
                 {g.itens.map((p) => (
-                  <tr key={p._id}>
+                  <tr key={p.id}>
                     <td data-label="Nome">{p.nome}</td>
                     <td data-label="Preço">R$ {Number(p.preco).toFixed(2)}</td>
                     <td data-label="Qtd.">{p.quantidade}</td>
@@ -265,7 +286,7 @@ export default function Produtos() {
                       <td data-label="Ações">
                         <div className="td-actions">
                           <button className="small ghost" onClick={() => setModal(p)}>Editar</button>
-                          <button className="small danger" onClick={() => remover(p._id)}>Excluir</button>
+                          <button className="small danger" onClick={() => excluirClicado(p.id)}>Excluir</button>
                         </div>
                       </td>
                     )}
@@ -286,7 +307,7 @@ export default function Produtos() {
               </div>
               <div className="prod-cards">
                 {g.itens.map((p) => (
-                  <div className="prod-card" key={p._id}>
+                  <div className="prod-card" key={p.id}>
                     <div className="prod-card-head">
                       <span className="prod-nome">{p.nome}</span>
                       {p.quantidade <= p.estoqueMinimo ? (
@@ -304,7 +325,7 @@ export default function Produtos() {
                     {isAdmin && (
                       <div className="td-actions">
                         <button className="small ghost" onClick={() => setModal(p)}>Editar</button>
-                        <button className="small danger" onClick={() => remover(p._id)}>Excluir</button>
+                        <button className="small danger" onClick={() => excluirClicado(p.id)}>Excluir</button>
                       </div>
                     )}
                   </div>
@@ -317,13 +338,38 @@ export default function Produtos() {
 
       {modal && (
         <ModalProduto
-          produto={modal._id ? modal : null}
+          produto={modal.id ? modal : null}
           categorias={[...new Set(produtos.map((p) => p.categoria).filter(Boolean))]}
           onClose={() => setModal(null)}
           onSalvar={() => {
             setModal(null);
             carregar();
           }}
+        />
+      )}
+
+      {importando && (
+        <ImportCSVModal
+          titulo="Importar produtos"
+          onClose={() => setImportando(false)}
+          onConfirm={importarProdutos}
+        />
+      )}
+
+      {alerta && (
+        <AlertModal
+          titulo="Importação concluída"
+          mensagem={alerta}
+          onClose={() => setAlerta(null)}
+        />
+      )}
+
+      {confirmarExcluir && (
+        <ConfirmModal
+          titulo="Excluir produto"
+          mensagem="Tem certeza que deseja remover este produto?"
+          onConfirm={() => remover(confirmarExcluir)}
+          onCancel={() => setConfirmarExcluir(null)}
         />
       )}
     </div>

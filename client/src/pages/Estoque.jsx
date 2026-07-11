@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, getToken } from "../api.js";
 import { ImportCSVModal } from "../ImportCSVModal.jsx";
+import { ConsumirLoteModal } from "../ConsumirLoteModal.jsx";
 
 function Lancar({ produto, tipo, onClose, onSalvar }) {
   const [quantidade, setQuantidade] = useState("");
@@ -14,7 +15,7 @@ function Lancar({ produto, tipo, onClose, onSalvar }) {
     setLoading(true);
     try {
       const fn = tipo === "entrada" ? api.entrada : api.saida;
-      await fn(produto._id, { quantidade: Number(quantidade), observacao });
+      await fn(produto.id, { quantidade: Number(quantidade), observacao });
       onSalvar();
     } catch (err) {
       setErro(err.message);
@@ -58,6 +59,7 @@ export default function Estoque() {
   const [erro, setErro] = useState("");
   const [lancar, setLancar] = useState(null);
   const [importando, setImportando] = useState(false);
+  const [consumirLote, setConsumirLote] = useState(null);
 
   async function carregarProdutos() {
     setLoading(true);
@@ -88,17 +90,14 @@ export default function Estoque() {
     else carregarHistorico();
   }, [aba]);
 
-  async function consumir(produto, total) {
-    const qtd = total ? produto.quantidade : 1;
-    try {
-      await api.saida(produto._id, {
-        quantidade: Number(qtd),
-        observacao: total ? "Consumo total" : "Consumo",
-      });
-      carregarProdutos();
-    } catch (err) {
-      setErro(err.message);
-    }
+  async function salvarConsumo(id, quantidade, validadeData) {
+    await api.saida(id, {
+      quantidade: Number(quantidade),
+      observacao: "Consumo",
+      validadeData: validadeData || undefined,
+    });
+    setConsumirLote(null);
+    carregarProdutos();
   }
 
   async function importarEstoque(itens) {
@@ -107,11 +106,25 @@ export default function Estoque() {
     setImportando(false);
   }
 
+  function exportarEstoque() {
+    const token = getToken();
+    const url = `/api/estoque/exportar`;
+    fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+      .then((r) => r.blob())
+      .then((blob) => {
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "estoque.csv";
+        a.click();
+        URL.revokeObjectURL(a.href);
+      })
+      .catch((err) => setErro(err.message));
+  }
+
   return (
     <div>
       <div className="page-head">
         <h1>Estoque</h1>
-        <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
         <div className="btn-row" style={{ margin: 0 }}>
           <button className={aba === "produtos" ? "" : "ghost"} onClick={() => setAba("produtos")}>
             Produtos
@@ -120,6 +133,8 @@ export default function Estoque() {
             Histórico
           </button>
         </div>
+        <button className="ghost" onClick={() => setImportando(true)}>Importar CSV</button>
+        <button className="ghost" onClick={exportarEstoque}>Exportar CSV</button>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
@@ -143,7 +158,7 @@ export default function Estoque() {
             </thead>
             <tbody>
               {produtos.map((p) => (
-                <tr key={p._id}>
+                <tr key={p.id}>
                   <td data-label="Nome">{p.nome}</td>
                   <td data-label="Categoria">{p.categoria}</td>
                   <td data-label="Qtd.">{p.quantidade}</td>
@@ -157,11 +172,9 @@ export default function Estoque() {
                   </td>
                   <td data-label="Ações">
                     <div className="td-actions">
-                      <button className="small" onClick={() => setLancar({ produto: p, tipo: "entrada" })}>Entrada</button>
-                      <button className="small ghost" onClick={() => setLancar({ produto: p, tipo: "saida" })}>Saída</button>
-                      <button className="small ghost" onClick={() => consumir(p, false)}>Consumo</button>
-                      <button className="small ghost" onClick={() => consumir(p, true)}>Consumo total</button>
-                    </div>
+                        <button className="small" onClick={() => setLancar({ produto: p, tipo: "entrada" })}>Entrada</button>
+                        <button className="small ghost" onClick={() => setConsumirLote(p)}>Consumo</button>
+                      </div>
                   </td>
                 </tr>
               ))}
@@ -186,9 +199,9 @@ export default function Estoque() {
           </thead>
           <tbody>
             {historico.map((m) => (
-              <tr key={m._id}>
+              <tr key={m.id}>
                 <td data-label="Data">{new Date(m.createdAt).toLocaleString("pt-BR")}</td>
-                <td data-label="Produto">{m.produto?.nome}</td>
+                <td data-label="Produto">{m.produtoMov?.nome || m.produto?.nome || "—"}</td>
                 <td data-label="Tipo">
                   <span className={`badge ${m.tipo === "entrada" ? "ok" : "warn"}`}>
                     {m.tipo === "entrada" ? "Entrada" : "Saída"}
@@ -220,6 +233,14 @@ export default function Estoque() {
           titulo="Importar CSV no estoque"
           onClose={() => setImportando(false)}
           onConfirm={importarEstoque}
+        />
+      )}
+
+      {consumirLote && (
+        <ConsumirLoteModal
+          produto={consumirLote}
+          onClose={() => setConsumirLote(null)}
+          onConfirm={salvarConsumo}
         />
       )}
     </div>

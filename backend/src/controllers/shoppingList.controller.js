@@ -1,6 +1,7 @@
 const { Op } = require("sequelize");
 const { Product, ShoppingList, Movement, User } = require("../models");
 const { normalizarValidades, mesclarValidades, subtrairValidades } = require("../utils/validades");
+const { likeOp } = require("../utils/dialect");
 
 async function criarAutomatica(req, res) {
   const produtos = await Product.findAll({});
@@ -21,13 +22,11 @@ async function criarAutomatica(req, res) {
     criadoPor: req.usuario.id,
   });
 
-  const itensPopulados = await Promise.all(
-    lista.itens.map(async (item) => {
-      const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria"] });
-      return { ...item, produto: p || item.produto };
-    })
-  );
-  lista.itens = itensPopulados;
+  const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+  const produtosMap = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
   return res.status(201).json(lista);
 }
 
@@ -38,7 +37,7 @@ async function resolverProduto(item) {
   }
   if (item.nome) {
     const nomeNormalizado = String(item.nome).trim();
-    const existente = await Product.findOne({ where: { nome: { [Op.iLike]: nomeNormalizado } } });
+    const existente = await Product.findOne({ where: { nome: { [likeOp()]: nomeNormalizado } } });
     if (existente) return existente;
     return Product.create({
       nome: nomeNormalizado,
@@ -80,37 +79,42 @@ async function criarManual(req, res) {
     criadoPor: req.usuario.id,
   });
 
-  const itensPopulados = await Promise.all(
-    lista.itens.map(async (item) => {
-      const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria"] });
-      return { ...item, produto: p || item.produto };
-    })
-  );
-  lista.itens = itensPopulados;
+  const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+  const produtosMap = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
   return res.status(201).json(lista);
 }
 
 async function listar(req, res) {
-  const { status } = req.query;
+  const { status, limite, offset } = req.query;
   const filtro = {};
   if (status) filtro.status = status;
-  const listas = await ShoppingList.findAll({
-    where: filtro,
-    order: [["createdAt", "DESC"]],
-  });
+  if (req.usuario.role !== "admin") filtro.criadoPor = req.usuario.id;
+  const options = { where: filtro, order: [["createdAt", "DESC"]] };
+  if (limite) options.limit = Number(limite);
+  if (offset) options.offset = Number(offset);
+  const listas = await ShoppingList.findAll(options);
+
+  const produtoIds = [...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean)))];
+  const produtos = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+
+  const userIds = [...new Set(listas.map((l) => l.criadoPor).filter(Boolean))];
+  const usuarios = userIds.length
+    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce((acc, u) => { acc[u.id] = u; return acc; }, {})
+    : {};
 
   for (const lista of listas) {
     if (Array.isArray(lista.itens)) {
-      const itemsPopulados = await Promise.all(
-        lista.itens.map(async (item) => {
-          const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria", "preco"] });
-          return { ...item, produto: p || item.produto };
-        })
-      );
-      lista.itens = itemsPopulados;
+      lista.itens = lista.itens.map((item) => ({
+        ...item,
+        produto: produtos[item.produto] || item.produto,
+      }));
     }
-    const criador = await User.findByPk(lista.criadoPor, { attributes: ["id", "nome"] });
-    lista.dataValues.criadoPor = criador || lista.criadoPor;
+    lista.dataValues.criadoPor = usuarios[lista.criadoPor] || lista.criadoPor;
   }
 
   return res.json(listas);
@@ -121,13 +125,14 @@ async function obter(req, res) {
   if (!lista) return res.status(404).json({ erro: "Lista não encontrada" });
 
   if (Array.isArray(lista.itens)) {
-    const itemsPopulados = await Promise.all(
-      lista.itens.map(async (item) => {
-        const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria", "preco"] });
-        return { ...item, produto: p || item.produto };
-      })
-    );
-    lista.itens = itemsPopulados;
+    const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+    const produtos = produtoIds.length
+      ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+      : {};
+    lista.itens = lista.itens.map((item) => ({
+      ...item,
+      produto: produtos[item.produto] || item.produto,
+    }));
   }
   const criador = await User.findByPk(lista.criadoPor, { attributes: ["id", "nome"] });
   lista.dataValues.criadoPor = criador || lista.criadoPor;
@@ -157,6 +162,7 @@ async function finalizar(req, res) {
     const produto = await Product.findByPk(item.produto);
     if (!produto) continue;
     produto.quantidade += Number(item.quantidade);
+    produto.preco = Number(item.precoUnitario) || produto.preco;
     if (Array.isArray(item.validades) && item.validades.length) {
       produto.validades = mesclarValidades(produto.validades, item.validades);
     }
@@ -168,6 +174,7 @@ async function finalizar(req, res) {
       usuario: req.usuario.id,
       observacao: `Compra via lista ${lista.id}`,
       validades: normalizarValidades(item.validades),
+      listaId: lista.id,
     });
   }
 
@@ -175,13 +182,11 @@ async function finalizar(req, res) {
   lista.finalizadaEm = new Date();
   await lista.save();
 
-  const itensPopulados = await Promise.all(
-    lista.itens.map(async (item) => {
-      const p = await Product.findByPk(item.produto, { attributes: ["id", "nome"] });
-      return { ...item, produto: p || item.produto };
-    })
-  );
-  lista.itens = itensPopulados;
+  const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+  const produtosMap = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
   return res.json(lista);
 }
 
@@ -192,7 +197,9 @@ async function reabrir(req, res) {
     return res.status(400).json({ erro: "Apenas listas finalizadas podem ser reabertas" });
   }
 
-  const movimentos = await Movement.findAll({ where: { observacao: `Compra via lista ${lista.id}` } });
+  const movimentos = await Movement.findAll({
+    where: { [Op.or]: [{ listaId: lista.id }, { observacao: `Compra via lista ${lista.id}` }] },
+  });
   for (const m of movimentos) {
     const produto = await Product.findByPk(m.produto);
     if (produto) {
@@ -209,13 +216,11 @@ async function reabrir(req, res) {
   lista.finalizadaEm = null;
   await lista.save();
 
-  const itensPopulados = await Promise.all(
-    lista.itens.map(async (item) => {
-      const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria", "preco"] });
-      return { ...item, produto: p || item.produto };
-    })
-  );
-  lista.itens = itensPopulados;
+  const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+  const produtosMap = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
   return res.json(lista);
 }
 
@@ -256,13 +261,11 @@ async function atualizar(req, res) {
 
   await lista.save();
 
-  const itensPopulados = await Promise.all(
-    lista.itens.map(async (item) => {
-      const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria", "preco"] });
-      return { ...item, produto: p || item.produto };
-    })
-  );
-  lista.itens = itensPopulados;
+  const produtoIds = [...new Set(lista.itens.map((i) => i.produto).filter(Boolean))];
+  const produtosMap = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria", "preco"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+  lista.itens = lista.itens.map((item) => ({ ...item, produto: produtosMap[item.produto] || item.produto }));
   return res.json(lista);
 }
 

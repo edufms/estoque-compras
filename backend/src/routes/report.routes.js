@@ -52,4 +52,16 @@ router.get("/mais-movimentados", autenticar, asyncHandler(controller.maisMovimen
  */
 router.get("/listas-pendentes", autenticar, asyncHandler(controller.listasPendentes));
 
+/**
+ * @swagger
+ * /api/relatorios/exportar:
+ *   get:
+ *     summary: Exporta produtos como CSV
+ *     tags: [Relatórios]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: Arquivo CSV }
+ */
+router.get("/exportar", autenticar, asyncHandler(controller.exportarCSV));
+
 module.exports = router;

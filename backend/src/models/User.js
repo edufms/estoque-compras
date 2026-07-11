@@ -21,6 +21,10 @@ const User = sequelize.define("User", {
     type: DataTypes.ENUM("admin", "usuario"),
     defaultValue: "usuario",
   },
+  foto: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 }, {
   tableName: "Users",
   timestamps: true,

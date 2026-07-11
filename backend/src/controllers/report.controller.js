@@ -11,6 +11,7 @@ function periodoInicio(dias) {
 async function estoqueBaixo(req, res) {
   const filtro = {};
   if (req.query.categoria) filtro.categoria = req.query.categoria;
+  if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   const produtos = await Product.findAll({ where: filtro });
   const baixo = produtos
     .filter((p) => p.quantidade <= p.estoqueMinimo)
@@ -21,6 +22,7 @@ async function estoqueBaixo(req, res) {
 async function valorTotalEstoque(req, res) {
   const filtro = {};
   if (req.query.categoria) filtro.categoria = req.query.categoria;
+  if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
   const produtos = await Product.findAll({ where: filtro });
   const valorTotal = produtos.reduce((acc, p) => acc + p.quantidade * (p.preco || 0), 0);
   const quantidadeTotalItens = produtos.reduce((acc, p) => acc + p.quantidade, 0);
@@ -76,21 +78,28 @@ async function listasPendentes(req, res) {
   const filtro = { status: "pendente" };
   const inicio = periodoInicio(req.query.periodo);
   if (inicio) filtro.createdAt = { [Op.gte]: inicio };
+  if (req.usuario.role !== "admin") filtro.criadoPor = req.usuario.id;
 
   let listas = await ShoppingList.findAll({ where: filtro, order: [["createdAt", "DESC"]] });
 
+  const produtoIds = [...new Set(listas.flatMap((l) => (l.itens || []).map((i) => i.produto).filter(Boolean)))];
+  const produtos = produtoIds.length
+    ? (await Product.findAll({ where: { id: produtoIds }, attributes: ["id", "nome", "categoria"] })).reduce((acc, p) => { acc[p.id] = p; return acc; }, {})
+    : {};
+
+  const userIds = [...new Set(listas.map((l) => l.criadoPor).filter(Boolean))];
+  const usuarios = userIds.length
+    ? (await User.findAll({ where: { id: userIds }, attributes: ["id", "nome"] })).reduce((acc, u) => { acc[u.id] = u; return acc; }, {})
+    : {};
+
   for (const l of listas) {
     if (Array.isArray(l.itens)) {
-      const itemsPopulados = await Promise.all(
-        l.itens.map(async (item) => {
-          const p = await Product.findByPk(item.produto, { attributes: ["id", "nome", "categoria"] });
-          return { ...item, produto: p || item.produto };
-        })
-      );
-      l.itens = itemsPopulados;
+      l.itens = l.itens.map((item) => ({
+        ...item,
+        produto: produtos[item.produto] || item.produto,
+      }));
     }
-    const criador = await User.findByPk(l.criadoPor, { attributes: ["id", "nome"] });
-    l.dataValues.criadoPor = criador || l.criadoPor;
+    l.dataValues.criadoPor = usuarios[l.criadoPor] || l.criadoPor;
   }
 
   if (req.query.categoria) {
@@ -112,4 +121,23 @@ async function listasPendentes(req, res) {
   return res.json(resposta);
 }
 
-module.exports = { estoqueBaixo, valorTotalEstoque, maisMovimentados, listasPendentes };
+async function exportarCSV(req, res) {
+  const filtro = {};
+  if (req.query.categoria) filtro.categoria = req.query.categoria;
+  if (req.usuario.role !== "admin") filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
+  const produtos = await Product.findAll({ where: filtro, order: [["nome", "ASC"]] });
+
+  const linhas = ["nome,categoria,preco,quantidade,estoqueMinimo"];
+  for (const p of produtos) {
+    const preco = (Number(p.preco) || 0).toFixed(2);
+    const nome = `"${(p.nome || "").replace(/"/g, '""')}"`;
+    const categoria = `"${(p.categoria || "").replace(/"/g, '""')}"`;
+    linhas.push(`${nome},${categoria},${preco},${p.quantidade},${p.estoqueMinimo}`);
+  }
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=produtos.csv");
+  return res.send(linhas.join("\n"));
+}
+
+module.exports = { estoqueBaixo, valorTotalEstoque, maisMovimentados, listasPendentes, exportarCSV };

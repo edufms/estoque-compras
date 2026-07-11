@@ -66,4 +66,16 @@ router.get("/historico", autenticar, asyncHandler(controller.historico));
  */
 router.post("/importar", autenticar, asyncHandler(controller.importar));
 
+/**
+ * @swagger
+ * /api/estoque/exportar:
+ *   get:
+ *     summary: Exporta estoque atual como CSV
+ *     tags: [Estoque]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       200: { description: CSV }
+ */
+router.get("/exportar", autenticar, asyncHandler(controller.exportar));
+
 module.exports = router;

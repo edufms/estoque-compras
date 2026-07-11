@@ -1,10 +1,14 @@
-const path = require("path");
-require("dotenv").config({ path: path.join(__dirname, "..", ".env") });
+process.env.DATABASE_URL = "sqlite://:memory:";
+
+// Clear cached config/db so it re-reads DATABASE_URL
+delete require.cache[require.resolve("../src/config")];
+delete require.cache[require.resolve("../src/config/db")];
+
 const { sequelize } = require("../src/config/db");
 
 beforeAll(async () => {
-  await sequelize.authenticate();
-  await sequelize.sync({ force: true });
+  const models = require("../src/models");
+  await models.sync({ force: true });
 });
 
 afterEach(async () => {

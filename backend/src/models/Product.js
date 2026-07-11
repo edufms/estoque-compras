@@ -35,6 +35,10 @@ const Product = sequelize.define("Product", {
     type: DataTypes.JSONB,
     defaultValue: [],
   },
+  criadoPor: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 }, {
   tableName: "Products",
   timestamps: true,

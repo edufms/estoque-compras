@@ -1,9 +1,10 @@
 const { Op } = require("sequelize");
 const { Product, Movement, User } = require("../models");
-const { mesclarValidades } = require("../utils/validades");
+const { mesclarValidades, subtrairValidades } = require("../utils/validades");
+const { likeOp } = require("../utils/dialect");
 
 async function entrada(req, res) {
-  const { quantidade, observacao } = req.body;
+  const { quantidade, observacao, validades } = req.body;
   if (!quantidade || quantidade <= 0) {
     return res.status(400).json({ erro: "quantidade deve ser maior que zero" });
   }
@@ -11,6 +12,9 @@ async function entrada(req, res) {
   if (!produto) return res.status(404).json({ erro: "Produto não encontrado" });
 
   produto.quantidade += Number(quantidade);
+  if (Array.isArray(validades) && validades.length) {
+    produto.validades = mesclarValidades(produto.validades, validades);
+  }
   await produto.save();
 
   const movimento = await Movement.create({
@@ -19,13 +23,14 @@ async function entrada(req, res) {
     quantidade: Number(quantidade),
     usuario: req.usuario.id,
     observacao: observacao || "",
+    validades: Array.isArray(validades) ? validades : [],
   });
 
   return res.status(201).json({ produto, movimento });
 }
 
 async function saida(req, res) {
-  const { quantidade, observacao } = req.body;
+  const { quantidade, observacao, validadeData } = req.body;
   if (!quantidade || quantidade <= 0) {
     return res.status(400).json({ erro: "quantidade deve ser maior que zero" });
   }
@@ -38,6 +43,19 @@ async function saida(req, res) {
   }
 
   produto.quantidade -= qtd;
+  if (validadeData && Array.isArray(produto.validades)) {
+    const lote = produto.validades.find((v) => v.data === validadeData);
+    if (lote) {
+      if (lote.quantidade < qtd) {
+        return res.status(400).json({ erro: `Lote ${validadeData} tem apenas ${lote.quantidade} unidade(s)` });
+      }
+      lote.quantidade -= qtd;
+      if (lote.quantidade <= 0) {
+        produto.validades = produto.validades.filter((v) => v.data !== validadeData);
+      }
+      produto.changed("validades", true);
+    }
+  }
   await produto.save();
 
   const movimento = await Movement.create({
@@ -56,36 +74,22 @@ async function historico(req, res) {
   const filtro = {};
   if (req.query.produto) filtro.produto = req.query.produto;
   if (req.query.tipo) filtro.tipo = req.query.tipo;
+  if (req.usuario.role !== "admin") filtro.usuario = req.usuario.id;
 
   const options = {
     where: filtro,
     order: [["createdAt", "DESC"]],
+    include: [
+      { model: Product, as: "produtoMov", attributes: ["id", "nome"] },
+      { model: User, as: "usuarioMov", attributes: ["id", "nome", "email"] },
+    ],
   };
   if (req.query.limit) options.limit = Number(req.query.limit);
+  if (req.query.offset) options.offset = Number(req.query.offset);
 
   const movimentos = await Movement.findAll(options);
 
-  const produtos = {};
-  const usuarios = {};
-  for (const m of movimentos) {
-    if (!produtos[m.produto]) {
-      const p = await Product.findByPk(m.produto, { attributes: ["id", "nome"] });
-      produtos[m.produto] = p;
-    }
-    if (!usuarios[m.usuario]) {
-      const u = await User.findByPk(m.usuario, { attributes: ["id", "nome", "email"] });
-      usuarios[m.usuario] = u;
-    }
-  }
-
-  const resultado = movimentos.map((m) => {
-    const json = m.toJSON();
-    json.produto = produtos[m.produto] || { id: m.produto, nome: null };
-    json.usuario = usuarios[m.usuario] || { id: m.usuario, nome: null, email: null };
-    return json;
-  });
-
-  return res.json(resultado);
+  return res.json(movimentos);
 }
 
 async function importar(req, res) {
@@ -104,7 +108,7 @@ async function importar(req, res) {
     const valorUnitario = Number(linha.valorUnitario) || 0;
     const validade = linha.validade ? String(linha.validade).trim() : "";
 
-    let produto = await Product.findOne({ where: { nome: { [Op.iLike]: nome } } });
+    let produto = await Product.findOne({ where: { nome: { [likeOp()]: nome } } });
     if (!produto) {
       produto = await Product.create({
         nome,
@@ -142,4 +146,27 @@ async function importar(req, res) {
   return res.status(201).json({ importados: importados.length, itens: importados });
 }
 
-module.exports = { entrada, saida, historico, importar };
+async function exportar(req, res) {
+  const filtro = {};
+  if (req.usuario.role !== "admin") {
+    filtro.criadoPor = { [Op.or]: [req.usuario.id, null] };
+  }
+  const produtos = await Product.findAll({ where: filtro, order: [["nome", "ASC"]] });
+
+  const linhas = ["nome,categoria,preco,quantidade,estoqueMinimo,validade"];
+  for (const p of produtos) {
+    const preco = (Number(p.preco) || 0).toFixed(2);
+    const nome = `"${(p.nome || "").replace(/"/g, '""')}"`;
+    const categoria = `"${(p.categoria || "").replace(/"/g, '""')}"`;
+    const validade = Array.isArray(p.validades) && p.validades.length
+      ? `"${p.validades.map((v) => `${v.data}:${v.quantidade}`).join(";")}"`
+      : "";
+    linhas.push(`${nome},${categoria},${preco},${p.quantidade},${p.estoqueMinimo},${validade}`);
+  }
+
+  res.setHeader("Content-Type", "text/csv; charset=utf-8");
+  res.setHeader("Content-Disposition", "attachment; filename=estoque.csv");
+  return res.send(linhas.join("\n"));
+}
+
+module.exports = { entrada, saida, historico, importar, exportar };

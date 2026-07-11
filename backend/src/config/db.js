@@ -20,7 +20,7 @@ async function connectDB() {
   await sequelize.authenticate();
   console.log(`Banco conectado (${isPostgres ? "PostgreSQL" : "SQLite"})`);
   const models = require("../models");
-  await models.sync({ alter: false });
+  await models.sync({ alter: isPostgres });
   return sequelize;
 }
 

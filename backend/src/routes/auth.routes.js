@@ -57,5 +57,6 @@ router.post("/login", asyncHandler(controller.login));
  *       200: { description: Perfil }
  */
 router.get("/perfil", autenticar, controller.perfil);
+router.put("/perfil", autenticar, asyncHandler(controller.atualizarPerfil));
 
 module.exports = router;

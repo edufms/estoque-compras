@@ -3,25 +3,25 @@
 Compact guidance for working in this repo. Commands are verified against `estoque-compras/backend/package.json`, `estoque-compras/backend/scripts/`, `estoque-compras/backend/jest.config.js`, and `estoque-compras/backend/src/config`.
 
 ## Layout & boundaries
-- `estoque-compras/backend/` = **backend** (Node/Express/Mongoose, CommonJS). Entry: `src/server.js` (exports `start`), wiring in `src/app.js`, config in `src/config/index.js`, route controllers in `src/controllers`, models in `src/models`.
+- `estoque-compras/backend/` = **backend** (Node/Express/Sequelize, CommonJS). Entry: `src/server.js` (exports `start`), wiring in `src/app.js`, config in `src/config/index.js`, route controllers in `src/controllers`, models in `src/models`.
 - `estoque-compras/client/` = **frontend** (React + Vite, ESM, `type: module`). Entry: `client/src/main.jsx`; routes/layout in `client/src/App.jsx`. Separate `package.json` and `node_modules` — treat as its own package.
 - There is **no monorepo tooling**; run backend and frontend independently.
 
 ## Run commands
-- Backend (no real MongoDB needed): `cd estoque-compras/backend && node scripts/dev-memory.js` (spins an in-memory MongoDB and starts the app). `scripts/run-dev.js` does the same.
-- `node src/server.js` / `npm start` (run from `estoque-compras/backend`) only work if `MONGO_URI` points at a running MongoDB (real or in-memory) — it does NOT auto-create one.
-- `npm run dev` (backend root) calls `nodemon`, which is **NOT installed** (not in deps, no binary). Do not rely on it; use `node scripts/dev-memory.js`.
+- Backend uses **PostgreSQL** (or SQLite as fallback). No MongoDB needed.
+- Start: `cd estoque-compras/backend && node scripts/dev.js` (reads `DATABASE_URL` from `.env`; defaults to PostgreSQL).
+- `node src/server.js` / `npm start` (run from `estoque-compras/backend`) also work as long as `DATABASE_URL` points at a running database.
 - Frontend: `cd estoque-compras/client && npm install && npm run dev`. Vite dev server = port **5173** (uses **5174** if 5173 is taken). It proxies `/api` → `http://localhost:3000`, so the backend must be running for the UI to work. `--host` exposes it on the network.
 - Build frontend: `cd estoque-compras/client && npm run build`.
 
 ## Tests
 - `npm test` (run from `estoque-compras/backend`) runs Jest (`--runInBand --detectOpenHandles`). `jest.config.js` matches `tests/**/*.test.js` (e.g. `tests/app.test.js`).
-- Tests use `mongodb-memory-server` automatically (`tests/setup.js` starts an in-memory mongo and clears collections between tests). **No external MongoDB or env setup needed to test.**
+- Tests use SQLite via Sequelize (`tests/setup.js` syncs the database and clears collections between tests). **No external database setup needed to test.**
 - There is **no lint or typecheck** configured (no ESLint/TS). Don't look for or invent those steps.
 
 ## MongoDB / data persistence
-- This environment has no standalone MongoDB. Dev runs use an **in-memory** MongoDB created fresh on each start → data entered is **lost on restart** unless you point `MONGO_URI` at a persistent mongod and reuse it.
-- Backend reads config (port, mongo uri, JWT) from `.env` via `dotenv` (`src/config/index.js`). `.env` is gitignored.
+- This environment has no standalone MongoDB. Dev runs use an **in-memory** SQLite (if `DATABASE_URL` is not postgres) or a PostgreSQL database.
+- Backend reads config (port, database url, JWT) from `.env` via `dotenv` (`src/config/index.js`). `.env` is gitignored.
 
 ## Backend behavior worth knowing
 - **Admin is locked to a single email**: `src/controllers/auth.controller.js` rejects `role: "admin"` unless `email === "edufms@gmail.com"`. The frontend hides the admin selector unless the email matches. Don't "fix" this as a bug.

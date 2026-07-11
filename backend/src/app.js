@@ -1,8 +1,11 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const swaggerUi = require("swagger-ui-express");
 const swaggerDocs = require("./config/swagger");
 const { autenticar } = require("./middleware/auth");
+const { errorHandler, naoEncontrado } = require("./middleware/errorHandler");
 
 const authRoutes = require("./routes/auth.routes");
 const productRoutes = require("./routes/product.routes");
@@ -13,8 +16,18 @@ const categoryRoutes = require("./routes/category.routes");
 
 function criarApp() {
   const app = express();
-  app.use(cors());
+  app.use(helmet());
+  app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
   app.use(express.json());
+
+  const authLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { erro: "Muitas tentativas. Tente novamente em 15 minutos." },
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  app.use("/api/auth", authLimiter);
 
   app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
   app.get("/health", (req, res) => res.json({ status: "ok" }));
@@ -26,12 +39,8 @@ function criarApp() {
   app.use("/api/relatorios", reportRoutes);
   app.use("/api/categorias", categoryRoutes);
 
-  app.use((req, res) => res.status(404).json({ erro: "Rota não encontrada" }));
-  app.use((err, req, res, next) => {
-    console.error(err.stack);
-    const status = err.status || 500;
-    res.status(status).json({ erro: err.message || "Erro interno" });
-  });
+  app.use(naoEncontrado);
+  app.use(errorHandler);
 
   return app;
 }

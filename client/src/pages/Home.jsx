@@ -73,12 +73,7 @@ export default function Home() {
         <span className="muted">Bem-vindo(a), {usuario?.nome}</span>
       </div>
 
-      <div className="quick-actions">
-        <Link to="/produtos"><button>Novo produto</button></Link>
-        <Link to="/listas"><button className="ghost">Listas de compras</button></Link>
-        <Link to="/categorias"><button className="ghost">Categorias</button></Link>
-        <Link to="/relatorios"><button className="ghost">Relatórios</button></Link>
-      </div>
+
 
       <div className="cards" style={{ marginBottom: 24 }}>
         <Stat label="Tipos de produtos" valor={valor.quantidadeProdutos} to="/produtos" />
@@ -123,7 +118,7 @@ export default function Home() {
               </thead>
               <tbody>
                 {baixo.slice(0, 6).map((p) => (
-                  <tr key={p._id}>
+                  <tr key={p.id}>
                     <td data-label="Produto">{p.nome}</td>
                     <td data-label="Qtd.">{p.quantidade}</td>
                     <td data-label="Mín.">{p.estoqueMinimo}</td>
@@ -148,7 +143,7 @@ export default function Home() {
               </thead>
               <tbody>
                 {pendentes.slice(0, 6).map((l) => (
-                  <tr key={l._id}>
+                  <tr key={l.id}>
                     <td data-label="Lista">{l.nome}</td>
                     <td data-label="Itens">{l.itens.length}</td>
                   </tr>
@@ -172,8 +167,8 @@ export default function Home() {
               </thead>
               <tbody>
                 {mov.slice(0, 6).map((m) => (
-                  <tr key={m._id}>
-                    <td data-label="Produto">{m.produto?.nome || "—"}</td>
+                  <tr key={m.id}>
+                    <td data-label="Produto">{m.produtoMov?.nome || m.produto?.nome || "—"}</td>
                     <td data-label="Tipo">
                       <span className={`badge ${m.tipo === "entrada" ? "ok" : "warn"}`}>
                         {m.tipo === "entrada" ? "Entrada" : "Saída"}

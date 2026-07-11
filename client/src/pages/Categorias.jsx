@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { carregarCategorias, getCategorias, salvarCategoria, removerCategoria } from "../categorias.js";
 import { api } from "../api.js";
 
-const SUGESTOES = ["📦", "🥖", "🥤", "🧴", "🧹", "🍎", "🥛", "🧊", "🪣", "🧷", "📝", "🔧"];
+const SUGESTOES = ["📦", "🥖", "🥤", "🧴", "🧹", "🍎", "🥛", "🧊", "🪣", "🧷", "📝", "🔧", "🥩", "🧀", "🥚", "🍞", "🍝", "🧂", "☕", "🧃", "🧻", "💊", "🔋", "💡", "🧰", "🎒", "👕", "🧸"];
 
 export default function Categorias() {
   const [registradas, setRegistradas] = useState([]);
@@ -69,7 +69,7 @@ export default function Categorias() {
   }
 
   return (
-    <div>
+    <div className="cat-page">
       <div className="page-head">
         <h1>Categorias</h1>
       </div>

@@ -34,13 +34,17 @@ export function AuthProvider({ children }) {
     return usuario;
   }
 
+  function atualizarUsuario(dados) {
+    setUsuario((prev) => ({ ...prev, ...dados }));
+  }
+
   function logout() {
     clearToken();
     setUsuario(null);
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, carregando, login, cadastrar, logout }}>
+    <AuthContext.Provider value={{ usuario, carregando, login, cadastrar, logout, atualizarUsuario }}>
       {children}
     </AuthContext.Provider>
   );

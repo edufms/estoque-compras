@@ -27,6 +27,10 @@ const Movement = sequelize.define("Movement", {
     type: DataTypes.JSONB,
     defaultValue: [],
   },
+  listaId: {
+    type: DataTypes.INTEGER,
+    allowNull: true,
+  },
 }, {
   tableName: "Movements",
   timestamps: true,

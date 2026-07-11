@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { api } from "../api.js";
+import { api, getToken } from "../api.js";
 
 function montarParams(filtros) {
   const p = new URLSearchParams();
@@ -117,6 +117,16 @@ export default function Relatorios() {
             <option value="50">50</option>
           </select>
         </label>
+        <button className="ghost" onClick={async () => {
+          try {
+            const res = await fetch("/api/relatorios/exportar", { headers: { Authorization: `Bearer ${getToken()}` } });
+            if (!res.ok) throw new Error("Erro ao exportar");
+            const blob = await res.blob();
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a"); a.href = url; a.download = "produtos.csv"; a.click();
+            URL.revokeObjectURL(url);
+          } catch (e) { alert(e.message); }
+        }}>Exportar CSV</button>
       </div>
 
       {erro && <p className="erro">{erro}</p>}
@@ -178,7 +188,7 @@ export default function Relatorios() {
                   const ref = Math.max(p.estoqueMinimo || 1, 1);
                   const pct = Math.min(100, (p.quantidade / (ref * 2)) * 100);
                   return (
-                    <tr key={p._id}>
+                    <tr key={p.id}>
                       <td data-label="Produto">{p.nome}</td>
                       <td data-label="Categoria">{p.categoria || "—"}</td>
                       <td data-label="Qtd.">{p.quantidade}</td>
@@ -216,7 +226,7 @@ export default function Relatorios() {
               {data.map((m) => {
                 const max = Math.max(...data.map((x) => x.totalMovimentacoes), 1);
                 return (
-                  <tr key={m._id}>
+                  <tr key={m.id}>
                     <td data-label="Produto">{m.nome || "—"}</td>
                     <td data-label="Movimentações">
                       <div className="celula-barra">
@@ -250,7 +260,7 @@ export default function Relatorios() {
             {data.map((l) => {
               const max = Math.max(...data.map((x) => x.valorEstimado || 0), 1);
               return (
-                <tr key={l._id}>
+                <tr key={l.id}>
                   <td data-label="Nome">{l.nome}</td>
                   <td data-label="Itens">{l.totalItens}</td>
                   <td data-label="Valor estimado">

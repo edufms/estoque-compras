@@ -64,6 +64,18 @@ router.post("/", autenticar, autorizar("admin"), asyncHandler(controller.criar))
  *       200:
  *         description: Removido
  */
+/**
+ * @swagger
+ * /api/produtos/importar:
+ *   post:
+ *     summary: Importa produtos em massa via CSV
+ *     tags: [Produtos]
+ *     security: [{ bearerAuth: [] }]
+ *     responses:
+ *       201: { description: Importados }
+ */
+router.post("/importar", autenticar, autorizar("admin"), asyncHandler(controller.importar));
+
 router.get("/:id", autenticar, asyncHandler(controller.obter));
 router.put("/:id", autenticar, autorizar("admin"), asyncHandler(controller.atualizar));
 router.delete("/:id", autenticar, autorizar("admin"), asyncHandler(controller.remover));

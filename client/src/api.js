@@ -49,17 +49,19 @@ export const api = {
   login: (email, senha, lembrar = true) => request("/auth/login", { method: "POST", body: { email, senha, lembrar }, auth: false }),
   cadastrar: (dados, lembrar = true) => request("/auth/cadastrar", { method: "POST", body: { ...dados, lembrar }, auth: false }),
   perfil: () => request("/auth/perfil"),
+  atualizarPerfil: (dados) => request("/auth/perfil", { method: "PUT", body: dados }),
 
   listarProdutos: (params = "") => request(`/produtos${params}`),
   obterProduto: (id) => request(`/produtos/${id}`),
   criarProduto: (dados) => request("/produtos", { method: "POST", body: dados }),
   atualizarProduto: (id, dados) => request(`/produtos/${id}`, { method: "PUT", body: dados }),
   removerProduto: (id) => request(`/produtos/${id}`, { method: "DELETE" }),
+  importarProdutos: (itens) => request("/produtos/importar", { method: "POST", body: { itens } }),
 
   entrada: (id, dados) => request(`/estoque/${id}/entrada`, { method: "POST", body: dados }),
   saida: (id, dados) => request(`/estoque/${id}/saida`, { method: "POST", body: dados }),
-    historico: (params = "") => request(`/estoque/historico${params}`),
-    importarEstoque: (itens) => request("/estoque/importar", { method: "POST", body: { itens } }),
+  historico: (params = "") => request(`/estoque/historico${params}`),
+  importarEstoque: (itens) => request("/estoque/importar", { method: "POST", body: { itens } }),
 
   listaAutomatica: () => request("/listas/automatica", { method: "POST" }),
   listaManual: (dados) => request("/listas/manual", { method: "POST", body: dados }),
