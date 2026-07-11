@@ -98,10 +98,10 @@ function Layout({ children }) {
         </nav>
 
         <div className="sidebar-footer">
-          {!recolhido && casaAtual && (
+          {!recolhido && (
             <button className="sidebar-casa" onClick={() => setCasaModal(true)}>
               <span className="sidebar-casa-icone">🏠</span>
-              <span className="sidebar-casa-nome">{casaAtual.nome}</span>
+              <span className="sidebar-casa-nome">{casaAtual ? casaAtual.nome : "Nenhuma casa"}</span>
               <span className="sidebar-casa-seta">▾</span>
             </button>
           )}
@@ -137,11 +137,9 @@ function Layout({ children }) {
 
         {recolhido && (
           <div className="sidebar-footer-mini">
-            {casaAtual && (
-              <button className="sidebar-link" onClick={() => setCasaModal(true)} title="Casas">
-                <span className="sidebar-icone">🏠</span>
-              </button>
-            )}
+            <button className="sidebar-link" onClick={() => setCasaModal(true)} title="Casas">
+              <span className="sidebar-icone">🏠</span>
+            </button>
             <Link
               to="/configuracoes"
               className={`sidebar-link ${ativa("/configuracoes") ? "active" : ""}`}

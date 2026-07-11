@@ -14,11 +14,14 @@ export function AuthProvider({ children }) {
       const lista = await api.casas.listar();
       setCasas(lista);
       const casaId = getCasaId();
-      const casa = lista.find((c) => String(c.id) === casaId) || lista[0];
+      const casa = lista.find((c) => String(c.id) === casaId);
       if (casa) {
         setCasaId(casa.id);
         const detalhes = await api.casas.atual();
         setCasaAtual(detalhes);
+      } else {
+        setCasaAtual(null);
+        setCasaId(null);
       }
     } catch {
       // sem casas ainda

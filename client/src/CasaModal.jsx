@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "./auth.jsx";
 
 export default function CasaModal({ aberto, onFechar }) {
-  const { casas, casaAtual, criarCasa, entrarCasa, trocarCasa, sairCasa, regenerarCodigo, removerMembro, excluirCasa } = useAuth();
+  const { usuario, casas, casaAtual, criarCasa, entrarCasa, trocarCasa, sairCasa, regenerarCodigo, removerMembro, excluirCasa } = useAuth();
   const [aba, setAba] = useState("listar");
   const [nomeNova, setNomeNova] = useState("");
   const [codigoConvite, setCodigoConvite] = useState("");
@@ -94,11 +94,21 @@ export default function CasaModal({ aberto, onFechar }) {
           <button className="modal-fechar" onClick={onFechar}>✕</button>
         </div>
 
+        {casas.length === 0 ? (
+          <div className="sem-casas">
+            <p>Você ainda não tem nenhuma casa. Crie uma nova ou entre em uma existente.</p>
+            <div className="sem-casas-acoes">
+              <button className="btn" onClick={() => setAba("criar")}>Criar Casa</button>
+              <button className="btn" onClick={() => setAba("entrar")}>Entrar em Casa</button>
+            </div>
+          </div>
+        ) : (
         <div className="tabs">
           <button className={`tab ${aba === "listar" ? "active" : ""}`} onClick={() => setAba("listar")}>Minhas Casas</button>
           <button className={`tab ${aba === "criar" ? "active" : ""}`} onClick={() => setAba("criar")}>Nova Casa</button>
           <button className={`tab ${aba === "entrar" ? "active" : ""}`} onClick={() => setAba("entrar")}>Entrar</button>
         </div>
+        )}
 
         {erro && <p className="erro">{erro}</p>}
 

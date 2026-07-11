@@ -1364,6 +1364,9 @@ tbody tr:hover {
 .membro-info { flex: 1; }
 .membro-info small { display: block; color: var(--text-2); font-size: 0.75rem; }
 .casa-acoes { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+.sem-casas { text-align: center; padding: 2rem 1rem; }
+.sem-casas p { color: var(--text-2); margin-bottom: 1.5rem; }
+.sem-casas-acoes { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
 .sidebar-casa { display: flex; align-items: center; gap: 0.5rem; width: 100%; padding: 0.5rem 0.75rem; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 0.5rem; font-size: 0.85rem; }
 .sidebar-casa:hover { opacity: 0.9; }
 .sidebar-casa-icone { font-size: 1.1rem; }

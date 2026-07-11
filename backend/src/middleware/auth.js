@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const config = require("../config");
-const { User, House, HouseMember } = require("../models");
+const { User, HouseMember } = require("../models");
 
 function gerarToken(usuario, lembrar = false) {
   return jwt.sign({ id: usuario.id, role: usuario.role }, config.jwtSecret, {
@@ -32,27 +32,8 @@ async function autenticar(req, res, next) {
       }
       req.casaId = Number(casaHeader);
     } else {
-      let member = await HouseMember.findOne({ where: { userId: usuario.id } });
-      if (!member) {
-        const house = await House.create({
-          nome: "Minha Casa",
-          codigo: House.gerarCodigo(),
-          criadoPor: usuario.id,
-        });
-        await HouseMember.create({
-          houseId: house.id,
-          userId: usuario.id,
-          role: "owner",
-        });
-        req.casaId = house.id;
-        const { Product, Category, ShoppingList, Movement } = require("../models");
-        await Product.update({ houseId: req.casaId }, { where: { houseId: 0 } });
-        await Category.update({ houseId: req.casaId }, { where: { houseId: 0 } });
-        await ShoppingList.update({ houseId: req.casaId }, { where: { houseId: 0 } });
-        await Movement.update({ houseId: req.casaId }, { where: { houseId: 0 } });
-      } else {
-        req.casaId = member.houseId;
-      }
+      const member = await HouseMember.findOne({ where: { userId: usuario.id } });
+      req.casaId = member ? member.houseId : null;
     }
 
     next();
